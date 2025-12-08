@@ -48,7 +48,7 @@ PORT=3000
 NODE_ENV=development
 
 # AI Features (Required for AI endpoints)
-ANTHROPIC_API_KEY=your_anthropic_api_key
+OPENAI_API_KEY=your_anthropic_api_key
 
 # Translation (Optional)
 DEEPL_API_KEY=your_deepl_api_key
