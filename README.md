@@ -276,7 +276,7 @@ npx prisma init
 
 ## License
 
-MIT
+![MIT](LICENSE)
 
 ## Contributing
 
