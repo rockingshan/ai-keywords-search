@@ -1,0 +1,319 @@
+// ASO Keyword API - Database Schema
+// SQLite database for historical data tracking
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ============ KEYWORD ANALYSIS HISTORY ============
+model KeywordAnalysis {
+  id              String   @id @default(cuid())
+  keyword         String
+  country         String   @default("us")
+
+  // Metrics
+  popularity      Int      // 5-100 scale (Apple Search Ads scale)
+  difficulty      Int      // 0-100 scale
+  competitorCount Int
+
+  // Relational data (stored as JSON)
+  topApps         String   // JSON array of top competing apps
+  relatedTerms    String   // JSON array of related keywords
+
+  // Metadata
+  analyzedAt      DateTime @default(now())
+  sessionId       String?  // Track user sessions
+
+  // Indexes for fast queries
+  @@index([keyword, country])
+  @@index([analyzedAt])
+  @@index([sessionId])
+}
+
+// ============ APP RANKING TRACKING ============
+model RankingHistory {
+  id             String   @id @default(cuid())
+  appId          String
+  appName        String
+  keyword        String
+  country        String   @default("us")
+
+  // Ranking data
+  rank           Int?     // null if not ranking
+  isRanking      Boolean  @default(false)
+  totalResults   Int
+
+  // Competitors snapshot (stored as JSON)
+  topCompetitors String   // JSON array of top 5 apps at this time
+
+  // Metadata
+  trackedAt      DateTime @default(now())
+
+  // Track which app this belongs to
+  app            App?     @relation(fields: [appId], references: [id])
+
+  @@index([appId, keyword, country])
+  @@index([trackedAt])
+}
+
+// ============ APP INFORMATION CACHE ============
+model App {
+  id                String   @id
+  bundleId          String?
+  name              String
+  developer         String?
+  developerId       String?
+  icon              String?
+  category          String?
+
+  // Metrics
+  rating            Float?
+  ratingCount       Int?
+  price             Float?
+  currency          String?
+
+  // Metadata cache (stored as text)
+  description       String?
+  releaseDate       String?  // Stored as ISO string
+  lastUpdated       DateTime @updatedAt
+
+  // Relations
+  rankings          RankingHistory[]
+  aiAnalyses        AICompetitorAnalysis[]
+
+  @@index([name])
+  @@index([category])
+}
+
+// ============ AI GENERATION HISTORY ============
+model AIKeywordSuggestion {
+  id              String   @id @default(cuid())
+
+  // Input parameters
+  appDescription  String
+  category        String
+  targetAudience  String?
+  country         String   @default("us")
+
+  // AI Output (stored as JSON)
+  suggestions     String   // JSON array of {keyword, relevance, competition, reasoning}
+  model           String   @default("gemini-2.0-flash-exp")
+
+  // Metadata
+  generatedAt     DateTime @default(now())
+  sessionId       String?
+
+  @@index([generatedAt])
+  @@index([sessionId])
+  @@index([category])
+}
+
+model AICompetitorAnalysis {
+  id              String   @id @default(cuid())
+
+  // Input
+  mainAppId       String
+  competitorIds   String   // JSON array of competitor app IDs
+  country         String   @default("us")
+
+  // Analysis results (stored as JSON)
+  missingKeywords String   // JSON array - Keywords competitors have
+  keywordGaps     String   // JSON array - Low competition opportunities
+  keywordsToAvoid String   // JSON array - Too competitive
+  recommendations String   // JSON array - Strategic advice
+
+  // Metadata
+  analyzedAt      DateTime @default(now())
+  sessionId       String?
+
+  // Relation
+  mainApp         App?     @relation(fields: [mainAppId], references: [id])
+
+  @@index([mainAppId])
+  @@index([analyzedAt])
+}
+
+model AIMetadataOptimization {
+  id                String   @id @default(cuid())
+
+  // Input
+  appDescription    String
+  currentTitle      String
+  currentSubtitle   String?
+  targetKeywords    String   // JSON array of keywords
+  country           String   @default("us")
+
+  // Optimized output
+  optimizedTitle    String
+  titleCharCount    Int
+  optimizedSubtitle String
+  subtitleCharCount Int
+  keywordField      String   // Comma-separated keywords
+  keywordCharCount  Int
+  reasoning         String
+
+  // Metadata
+  generatedAt       DateTime @default(now())
+  sessionId         String?
+
+  @@index([generatedAt])
+  @@index([sessionId])
+}
+
+model AIIntentAnalysis {
+  id          String   @id @default(cuid())
+  keywords    String   // JSON array - Input keywords
+  analysis    String   // JSON array - {keyword, intent, confidence, explanation}
+  analyzedAt  DateTime @default(now())
+  sessionId   String?
+
+  @@index([analyzedAt])
+  @@index([sessionId])
+}
+
+// ============ SEARCH & USER ACTIVITY ============
+model SearchHistory {
+  id          String   @id @default(cuid())
+
+  // Search parameters
+  endpoint    String   // e.g., "/api/keywords/analyze"
+  method      String   // GET, POST
+  query       String   // JSON - Query parameters
+  body        String?  // JSON - POST body if applicable
+
+  // Response metadata
+  statusCode  Int
+  duration    Int      // Response time in ms
+  cached      Boolean  @default(false)
+
+  // Optional: Store actual response for debugging (JSON)
+  response    String?
+
+  // User tracking
+  ipAddress   String?
+  userAgent   String?
+  sessionId   String?
+
+  // Timestamps
+  timestamp   DateTime @default(now())
+
+  @@index([endpoint])
+  @@index([timestamp])
+  @@index([sessionId])
+  @@index([ipAddress])
+}
+
+// ============ SAVED SEARCHES / FAVORITES ============
+model SavedSearch {
+  id          String   @id @default(cuid())
+  userId      String?  // Future: link to user accounts
+
+  // Search configuration
+  name        String   // User-defined name
+  type        String   // "keyword" | "app" | "competitor"
+  config      String   // JSON - Search parameters
+
+  // Tracking
+  createdAt   DateTime @default(now())
+  lastChecked DateTime?
+
+  // Notifications (future feature)
+  alertEnabled Boolean @default(false)
+
+  @@index([userId])
+  @@index([type])
+}
+
+// ============ TRANSLATION CACHE ============
+model TranslationCache {
+  id             String   @id @default(cuid())
+  originalText   String
+  translatedText String
+  sourceLang     String
+  targetLang     String
+
+  // Metadata
+  translatedAt   DateTime @default(now())
+  service        String   @default("deepl") // "deepl" | "gemini"
+
+  @@unique([originalText, sourceLang, targetLang])
+  @@index([targetLang])
+}
+
+// ============ OPPORTUNITY FINDER ============
+model OpportunityDiscovery {
+  id              String   @id @default(cuid())
+  category        String
+  targetAudience  String?
+  country         String   @default("us")
+
+  // Results (stored as JSON)
+  keywords        String   // JSON array of keyword analysis results
+  topOpportunities String  // JSON array of top 20 keywords by opportunity score
+  appIdeas        String?  // JSON array of AI-generated app concepts
+
+  // Filters used
+  filters         String?  // JSON object of filter criteria
+
+  // Metadata
+  discoveredAt    DateTime @default(now())
+  sessionId       String?
+
+  @@index([category])
+  @@index([discoveredAt])
+  @@index([sessionId])
+}
+
+// ============ USER TRACKING ============
+model TrackedKeyword {
+  id              String   @id @default(cuid())
+  keyword         String
+  country         String   @default("us")
+
+  // Metrics at time of tracking
+  popularity      Int?
+  difficulty      Int?
+  opportunityScore Int?
+  competitorCount Int?
+
+  // Metadata
+  trackedAt       DateTime @default(now())
+  sessionId       String   @default("default")  // Session identifier (default for users without session)
+  notes           String?  // User notes
+
+  @@unique([keyword, country, sessionId])
+  @@index([sessionId])
+  @@index([trackedAt])
+}
+
+model SavedAppIdea {
+  id                  String   @id @default(cuid())
+
+  // App concept details
+  name                String
+  elevatorPitch       String
+  description         String
+  targetKeywords      String   // JSON array
+  uniqueSellingPoints String   // JSON array
+  keyFeatures         String   // JSON array
+  targetAudience      String
+  estimatedDifficulty String   // "Easy" | "Moderate" | "Hard"
+
+  // Origin context
+  category            String
+  sourceOpportunityId String?  // Link to OpportunityDiscovery if applicable
+
+  // Metadata
+  savedAt             DateTime @default(now())
+  sessionId           String?
+  notes               String?  // User notes
+
+  @@index([category])
+  @@index([sessionId])
+  @@index([savedAt])
+}

@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(test:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(npm install:*)",
+      "Bash(dir:*)",
+      "Bash(timeout /t 3)",
+      "Bash(npx prisma:*)",
+      "Skill(frontend-design)",
+      "Bash(npm create:*)",
+      "Bash(npx tailwindcss:*)",
+      "Bash(npm run dev:*)",
+      "Bash(timeout 5 tail:*)",
+      "Bash(curl:*)",
+      "Bash(npm start)",
+      "Bash(timeout 3 tail:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(taskkill:*)",
+      "Bash(start chrome http://localhost:5174)",
+      "Bash(start chrome http://localhost:5175)",
+      "Bash(powershell -Command \"Add-Type -AssemblyName System.Windows.Forms; Start-Sleep -Seconds 2; $screen = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds; $bitmap = New-Object System.Drawing.Bitmap\\($screen.Width, $screen.Height\\); $graphics = [System.Drawing.Graphics]::FromImage\\($bitmap\\); $graphics.CopyFromScreen\\($screen.Location, [System.Drawing.Point]::Empty, $screen.Size\\); $bitmap.Save\\(''$env:TEMP\\\\screenshot.png''\\); $bitmap.Dispose\\(\\); $graphics.Dispose\\(\\); Write-Host ''Screenshot saved''\")",
+      "Bash(npm run build:*)"
+    ]
+  }
+}

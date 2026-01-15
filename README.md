@@ -1,11 +1,12 @@
-# ASO Keyword API
+# ASO Keyword Research Platform
 
-A powerful Node.js backend API for App Store Optimization (ASO) with AI-powered keyword research, similar to [Astro](https://tryastro.app).
+A full-stack App Store Optimization (ASO) platform with AI-powered keyword research, beautiful React frontend, and persistent historical data tracking. Similar to [Astro](https://tryastro.app) but open-source and self-hosted.
 
-## Features
+## 🎯 Features
 
+### Backend API
 - 🔍 **Keyword Analysis** - Get popularity and difficulty scores for any keyword
-- 🤖 **AI-Powered Suggestions** - Generate keyword ideas using Claude AI
+- 🤖 **AI-Powered Suggestions** - Generate keyword ideas using Google Gemini AI
 - 📊 **Competitor Analysis** - Find keyword gaps and opportunities
 - 🌍 **Multi-Country Support** - Track keywords across 50+ App Store regions
 - 📈 **Rank Tracking** - Monitor your app's keyword rankings
@@ -13,21 +14,31 @@ A powerful Node.js backend API for App Store Optimization (ASO) with AI-powered 
 - 🌐 **Translation** - Localize keywords with DeepL integration
 - ⚡ **Caching** - Built-in caching for optimal performance
 - 🛡️ **Rate Limiting** - Protect your API from abuse
+- 💾 **Database Persistence** - SQLite database with Prisma ORM for historical tracking
+- 📊 **Analytics** - Request tracking and usage analytics
 
-## Quick Start
+### Frontend Application
+- 🎨 **Modern UI** - React + TypeScript with warm orange theme
+- 📱 **Responsive Design** - Works beautifully on desktop and mobile
+- 🌙 **Dark Mode** - Eye-friendly dark theme by default
+- ⚡ **Real-time Updates** - TanStack Query for instant data synchronization
+- 📈 **Data Visualization** - Beautiful charts and graphs with Recharts
+- 🔥 **Trending Keywords** - See what's hot in real-time
+- 🤖 **AI Tools** - Built-in AI keyword generator, competitor analyzer, and more
+- 📜 **Search History** - Track and revisit your research
+- 🎯 **7 Comprehensive Pages** - Dashboard, Keyword Research, App Explorer, Rank Tracking, Competitor Analysis, AI Tools, and History
+
+## 🚀 Quick Start
 
 ### Prerequisites
 
 - Node.js 18+
 - npm or yarn
 
-### Installation
+### Backend Setup
 
 ```bash
-# Clone or copy the project
-cd aso-api
-
-# Install dependencies
+# Install backend dependencies
 npm install
 
 # Copy environment file
@@ -36,9 +47,33 @@ cp .env.example .env
 # Edit .env with your API keys
 nano .env
 
-# Start the server
+# Run database migration
+npx prisma migrate dev --name init
+
+# Start the backend server (http://localhost:3000)
 npm start
 ```
+
+### Frontend Setup
+
+```bash
+# Navigate to frontend directory
+cd frontend
+
+# Install frontend dependencies
+npm install
+
+# Start the frontend dev server (http://localhost:5173)
+npm run dev
+```
+
+### Accessing the Platform
+
+Once both servers are running:
+- **Frontend Application**: http://localhost:5173
+- **Backend API**: http://localhost:3000
+- **API Documentation**: http://localhost:3000/api/docs
+- **Health Check**: http://localhost:3000/api/health
 
 ### Environment Variables
 
@@ -47,8 +82,12 @@ npm start
 PORT=3000
 NODE_ENV=development
 
+# Database
+DATABASE_URL="file:./prisma/aso.db"
+
 # AI Features (Required for AI endpoints)
-OPENAI_API_KEY=your_anthropic_api_key
+# Get your API key from: https://aistudio.google.com/app/apikey
+GEMINI_API_KEY=your_google_gemini_api_key
 
 # Translation (Optional)
 DEEPL_API_KEY=your_deepl_api_key
@@ -94,6 +133,15 @@ RATE_LIMIT_MAX_REQUESTS=100
 | POST | `/api/ai/localize-keywords` | Localize for markets |
 | POST | `/api/ai/translate` | Translate keywords |
 | GET | `/api/ai/languages` | Supported languages |
+
+### History & Analytics
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/history/keywords/:keyword` | Historical trend data for a keyword |
+| GET | `/api/history/rankings/:appId` | App ranking history over time |
+| GET | `/api/history/trending` | Trending keywords by search frequency |
+| GET | `/api/history/ai-generations` | Past AI generations and analyses |
 
 ## Usage Examples
 
@@ -183,18 +231,23 @@ curl -X POST "http://localhost:3000/api/ai/translate" \
   }'
 ```
 
-## Project Structure
+## 📁 Project Structure
 
 ```
-aso-api/
-├── src/
+aso-keyword-platform/
+├── src/                      # Backend source code
 │   ├── config/
 │   │   └── index.js          # Configuration
+│   ├── db/
+│   │   └── prisma.js         # Prisma client singleton
+│   ├── middleware/
+│   │   └── analytics.js      # Request tracking middleware
 │   ├── routes/
 │   │   ├── index.js          # Route aggregator
 │   │   ├── keywords.routes.js # Keyword endpoints
 │   │   ├── apps.routes.js    # App endpoints
-│   │   └── ai.routes.js      # AI endpoints
+│   │   ├── ai.routes.js      # AI endpoints
+│   │   └── history.routes.js # History endpoints
 │   ├── services/
 │   │   ├── appStore.service.js    # App Store data
 │   │   ├── keyword.service.js     # Keyword analysis
@@ -203,11 +256,73 @@ aso-api/
 │   ├── utils/
 │   │   ├── logger.js         # Logging utility
 │   │   └── cache.js          # Caching utility
-│   └── index.js              # App entry point
+│   └── index.js              # Backend entry point
+├── prisma/
+│   ├── schema.prisma         # Database schema (12 models)
+│   ├── migrations/           # Database migrations
+│   └── aso.db               # SQLite database file
+├── frontend/                 # React frontend application
+│   ├── src/
+│   │   ├── api/              # API client layer
+│   │   │   ├── client.ts     # Axios instance
+│   │   │   ├── keywords.ts   # Keyword API methods
+│   │   │   ├── apps.ts       # App API methods
+│   │   │   ├── ai.ts         # AI API methods
+│   │   │   └── history.ts    # History API methods
+│   │   ├── components/
+│   │   │   ├── ui/           # UI components (Button, Card, etc.)
+│   │   │   └── layout/       # Layout components
+│   │   ├── pages/
+│   │   │   ├── Dashboard.tsx         # Main dashboard
+│   │   │   ├── KeywordResearch.tsx   # Keyword analysis
+│   │   │   ├── AppExplorer.tsx       # App search
+│   │   │   ├── RankTracking.tsx      # Rank monitoring
+│   │   │   ├── CompetitorAnalysis.tsx # Gap analysis
+│   │   │   ├── AITools.tsx           # AI features
+│   │   │   └── History.tsx           # Search history
+│   │   ├── store/
+│   │   │   └── useStore.ts   # Zustand state management
+│   │   ├── App.tsx           # Root component
+│   │   └── main.tsx          # Frontend entry point
+│   ├── package.json
+│   └── vite.config.ts        # Vite configuration
 ├── .env.example              # Environment template
-├── package.json
+├── package.json              # Backend dependencies
 └── README.md
 ```
+
+## 💾 Database Schema
+
+The platform uses SQLite with Prisma ORM and includes 12 models for comprehensive data tracking:
+
+- **KeywordAnalysis** - Historical keyword metrics (popularity, difficulty, competitors)
+- **RankingHistory** - App ranking positions over time
+- **App** - Cached app information
+- **AIKeywordSuggestion** - AI-generated keyword suggestions
+- **AICompetitorAnalysis** - Competitor gap analysis results
+- **AIMetadataOptimization** - Optimized metadata generations
+- **AIIntentAnalysis** - Keyword intent categorization
+- **SearchHistory** - All API requests for analytics
+- **SavedSearch** - User-saved searches and favorites
+- **TranslationCache** - Translation results cache
+
+All data is persisted automatically without affecting API response times (non-blocking saves).
+
+## 🎨 Frontend Technology Stack
+
+- **Framework**: React 18 + TypeScript
+- **Build Tool**: Vite
+- **Routing**: React Router v6
+- **Styling**: Tailwind CSS with custom warm orange theme
+- **UI Components**: Custom components with shadcn/ui patterns
+- **State Management**:
+  - TanStack Query (React Query) for server state
+  - Zustand for client state
+- **Charts**: Recharts for data visualization
+- **HTTP Client**: Axios with interceptors
+- **Icons**: Lucide React
+- **Fonts**: Outfit (display), JetBrains Mono (code)
+- **Theme**: Dark-first with warm orange/amber gradients
 
 ## Data Sources
 
@@ -230,42 +345,40 @@ Difficulty is calculated based on:
 - Strength of top 3 apps (market dominance)
 - Total competitor count
 
-## Extending the API
+## 🔧 Extending the Platform
 
 ### Adding Apple Search Ads Integration
 
-If you have Apple Search Ads API access:
+For official Apple Search Ads popularity data (5-100 scale), you can integrate the Apple Search Ads API:
 
-```javascript
-// src/services/appleSearchAds.service.js
-import jwt from 'jsonwebtoken';
-import axios from 'axios';
-import { config } from '../config/index.js';
+1. Get Apple Search Ads API access
+2. Create `src/services/appleSearchAds.service.js`
+3. Implement OAuth token generation
+4. Replace estimated popularity with official scores
 
-export class AppleSearchAdsService {
-  constructor() {
-    this.baseUrl = 'https://api.searchads.apple.com/api/v4';
-  }
+See: https://developer.apple.com/documentation/apple_search_ads
 
-  async getAccessToken() {
-    // Implement OAuth token generation
-    // See: https://developer.apple.com/documentation/apple_search_ads
-  }
+### Customizing the Frontend Theme
 
-  async getKeywordPopularity(keywords, country) {
-    const token = await this.getAccessToken();
-    // Call Apple Search Ads API for actual popularity scores
-  }
-}
-```
+The frontend uses a warm orange color palette. To customize:
 
-### Adding Database Persistence
+1. Edit `frontend/src/index.css` - Update CSS variables
+2. Edit `frontend/tailwind.config.js` - Modify theme colors
+3. Update gradient classes in components
 
-For storing historical data:
+### Adding More Database Models
+
+To extend the database schema:
 
 ```bash
-npm install prisma @prisma/client
-npx prisma init
+# Edit prisma/schema.prisma
+# Add your new models
+
+# Create migration
+npx prisma migrate dev --name your_migration_name
+
+# Generate Prisma client
+npx prisma generate
 ```
 
 ## Rate Limits

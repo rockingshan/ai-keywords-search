@@ -1,18 +1,19 @@
-import OpenAI from 'openai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import { config } from '../config/index.js';
 import { logger } from '../utils/logger.js';
 import { cache } from '../utils/cache.js';
 import { appStoreService } from './appStore.service.js';
+import { prisma } from '../db/prisma.js';
 
 export class AIService {
   constructor() {
-    if (config.openaiApiKey) {
-      this.client = new OpenAI({
-        apiKey: config.openaiApiKey,
-      });
+    if (config.geminiApiKey) {
+      this.client = new GoogleGenerativeAI(config.geminiApiKey);
+      this.model = this.client.getGenerativeModel({ model: 'gemini-3-flash-preview' });
     } else {
-      logger.warn('OpenAI API key not configured. AI features will be limited.');
+      logger.warn('Google Gemini API key not configured. AI features will be limited.');
       this.client = null;
+      this.model = null;
     }
   }
 
@@ -20,8 +21,8 @@ export class AIService {
    * Generate AI-powered keyword suggestions based on app description
    */
   async generateKeywordSuggestions(appDescription, category, targetAudience = '', country = 'us') {
-    if (!this.client) {
-      throw new Error('AI service not configured. Please set OPENAI_API_KEY.');
+    if (!this.model) {
+      throw new Error('AI service not configured. Please set GEMINI_API_KEY.');
     }
 
     const cacheKey = `ai:suggestions:${Buffer.from(appDescription).toString('base64').slice(0, 50)}:${category}:${country}`;
@@ -56,24 +57,14 @@ Return your response as a JSON array with objects containing: keyword, relevance
 
 Provide at least 20 keyword suggestions.`;
 
-      const response = await this.client.chat.completions.create({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'user',
-            content: prompt,
-          },
-        ],
-        max_tokens: 2000,
-        temperature: 0.7,
-      });
+      const result = await this.model.generateContent(prompt);
+      const response = await result.response;
+      const content = response.text();
 
-      const content = response.choices[0].message.content;
-      
       // Parse JSON from response
       const jsonMatch = content.match(/\[[\s\S]*\]/);
       let suggestions = [];
-      
+
       if (jsonMatch) {
         try {
           suggestions = JSON.parse(jsonMatch[0]);
@@ -85,14 +76,31 @@ Provide at least 20 keyword suggestions.`;
         suggestions = this.extractKeywordsFromText(content);
       }
 
-      const result = {
+      const resultData = {
         suggestions,
         generatedAt: new Date().toISOString(),
-        model: 'gpt-4o-mini',
+        model: 'gemini-3-flash-preview',
       };
 
-      cache.set(cacheKey, result, 7200); // 2 hour cache
-      return result;
+      // Save AI generation to database
+      try {
+        await prisma.aIKeywordSuggestion.create({
+          data: {
+            appDescription: appDescription.slice(0, 5000),
+            category,
+            targetAudience: targetAudience || '',
+            country,
+            suggestions: JSON.stringify(resultData.suggestions),
+            model: resultData.model,
+            generatedAt: new Date(resultData.generatedAt),
+          },
+        });
+      } catch (dbError) {
+        logger.error('Failed to save AI suggestions to database:', dbError.message);
+      }
+
+      cache.set(cacheKey, resultData, 7200); // 2 hour cache
+      return resultData;
     } catch (error) {
       logger.error('Error generating AI suggestions:', error.message);
       throw error;
@@ -103,8 +111,8 @@ Provide at least 20 keyword suggestions.`;
    * Analyze competitors and suggest keyword opportunities
    */
   async analyzeCompetitors(appId, competitorIds, country = 'us') {
-    if (!this.client) {
-      throw new Error('AI service not configured. Please set OPENAI_API_KEY.');
+    if (!this.model) {
+      throw new Error('AI service not configured. Please set GEMINI_API_KEY.');
     }
 
     try {
@@ -125,14 +133,14 @@ Provide at least 20 keyword suggestions.`;
 MAIN APP:
 Name: ${mainApp.name}
 Category: ${mainApp.category}
-Description: ${mainApp.description.slice(0, 500)}
+Description: ${mainApp.description?.slice(0, 500) || 'No description'}
 Current Keywords (extracted): ${mainAppKeywords.keywords.slice(0, 20).map(k => k.keyword).join(', ')}
 
 COMPETITORS:
 ${competitors.map((c, i) => `
 ${i + 1}. ${c.name}
 Category: ${c.category}
-Rating: ${c.rating} (${c.ratingCount} reviews)
+Rating: ${c.rating || 'N/A'} (${c.ratingCount || 0} reviews)
 Keywords: ${competitorKeywordsData[i]?.keywords.slice(0, 15).map(k => k.keyword).join(', ')}
 `).join('\n')}
 
@@ -144,21 +152,11 @@ Provide:
 
 Return as JSON with: missingKeywords[], keywordGaps[], keywordsToAvoid[], recommendations[]`;
 
-      const response = await this.client.chat.completions.create({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'user',
-            content: prompt,
-          },
-        ],
-        max_tokens: 2000,
-        temperature: 0.7,
-      });
-
-      const content = response.choices[0].message.content;
+      const aiResult = await this.model.generateContent(prompt);
+      const response = await aiResult.response;
+      const content = response.text();
       const jsonMatch = content.match(/\{[\s\S]*\}/);
-      
+
       let analysis = {
         missingKeywords: [],
         keywordGaps: [],
@@ -174,7 +172,7 @@ Return as JSON with: missingKeywords[], keywordGaps[], keywordsToAvoid[], recomm
         }
       }
 
-      return {
+      const result = {
         mainApp: {
           id: mainApp.id,
           name: mainApp.name,
@@ -186,6 +184,26 @@ Return as JSON with: missingKeywords[], keywordGaps[], keywordsToAvoid[], recomm
         analysis,
         analyzedAt: new Date().toISOString(),
       };
+
+      // Save competitor analysis to database
+      try {
+        await prisma.aICompetitorAnalysis.create({
+          data: {
+            mainAppId: String(mainApp.id),
+            competitorIds: JSON.stringify(competitorIds),
+            country,
+            missingKeywords: JSON.stringify(analysis.missingKeywords),
+            keywordGaps: JSON.stringify(analysis.keywordGaps),
+            keywordsToAvoid: JSON.stringify(analysis.keywordsToAvoid),
+            recommendations: JSON.stringify(analysis.recommendations),
+            analyzedAt: new Date(result.analyzedAt),
+          },
+        });
+      } catch (dbError) {
+        logger.error('Failed to save competitor analysis to database:', dbError.message);
+      }
+
+      return result;
     } catch (error) {
       logger.error('Error analyzing competitors:', error.message);
       throw error;
@@ -196,8 +214,8 @@ Return as JSON with: missingKeywords[], keywordGaps[], keywordsToAvoid[], recomm
    * Generate optimized metadata (title, subtitle, keywords) for an app
    */
   async generateOptimizedMetadata(appDescription, currentTitle, currentSubtitle, targetKeywords, country = 'us') {
-    if (!this.client) {
-      throw new Error('AI service not configured. Please set OPENAI_API_KEY.');
+    if (!this.model) {
+      throw new Error('AI service not configured. Please set GEMINI_API_KEY.');
     }
 
     try {
@@ -225,23 +243,38 @@ Return as JSON:
   "reasoning": "explanation of choices"
 }`;
 
-      const response = await this.client.chat.completions.create({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'user',
-            content: prompt,
-          },
-        ],
-        max_tokens: 1000,
-        temperature: 0.7,
-      });
-
-      const content = response.choices[0].message.content;
+      const result = await this.model.generateContent(prompt);
+      const response = await result.response;
+      const content = response.text();
       const jsonMatch = content.match(/\{[\s\S]*\}/);
-      
+
       if (jsonMatch) {
-        return JSON.parse(jsonMatch[0]);
+        const metadata = JSON.parse(jsonMatch[0]);
+
+        // Save metadata optimization to database
+        try {
+          await prisma.aIMetadataOptimization.create({
+            data: {
+              appDescription: appDescription.slice(0, 5000),
+              currentTitle,
+              currentSubtitle: currentSubtitle || '',
+              targetKeywords: JSON.stringify(targetKeywords),
+              country,
+              optimizedTitle: metadata.title,
+              titleCharCount: metadata.titleCharCount,
+              optimizedSubtitle: metadata.subtitle,
+              subtitleCharCount: metadata.subtitleCharCount,
+              keywordField: metadata.keywords,
+              keywordCharCount: metadata.keywordsCharCount,
+              reasoning: metadata.reasoning,
+              generatedAt: new Date(),
+            },
+          });
+        } catch (dbError) {
+          logger.error('Failed to save metadata optimization to database:', dbError.message);
+        }
+
+        return metadata;
       }
 
       throw new Error('Failed to parse metadata response');
@@ -255,8 +288,8 @@ Return as JSON:
    * Analyze keyword intent and categorize
    */
   async analyzeKeywordIntent(keywords) {
-    if (!this.client) {
-      throw new Error('AI service not configured. Please set OPENAI_API_KEY.');
+    if (!this.model) {
+      throw new Error('AI service not configured. Please set GEMINI_API_KEY.');
     }
 
     try {
@@ -273,23 +306,28 @@ Categorize each keyword into:
 Return as JSON array:
 [{"keyword": "...", "intent": "...", "confidence": 0.0-1.0, "explanation": "..."}]`;
 
-      const response = await this.client.chat.completions.create({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'user',
-            content: prompt,
-          },
-        ],
-        max_tokens: 1500,
-        temperature: 0.5,
-      });
-
-      const content = response.choices[0].message.content;
+      const result = await this.model.generateContent(prompt);
+      const response = await result.response;
+      const content = response.text();
       const jsonMatch = content.match(/\[[\s\S]*\]/);
-      
+
       if (jsonMatch) {
-        return JSON.parse(jsonMatch[0]);
+        const analysis = JSON.parse(jsonMatch[0]);
+
+        // Save intent analysis to database
+        try {
+          await prisma.aIIntentAnalysis.create({
+            data: {
+              keywords: JSON.stringify(keywords),
+              analysis: JSON.stringify(analysis),
+              analyzedAt: new Date(),
+            },
+          });
+        } catch (dbError) {
+          logger.error('Failed to save intent analysis to database:', dbError.message);
+        }
+
+        return analysis;
       }
 
       return [];
@@ -303,8 +341,8 @@ Return as JSON array:
    * Generate localized keywords for different markets
    */
   async generateLocalizedKeywords(keywords, sourceCountry, targetCountries) {
-    if (!this.client) {
-      throw new Error('AI service not configured. Please set OPENAI_API_KEY.');
+    if (!this.model) {
+      throw new Error('AI service not configured. Please set GEMINI_API_KEY.');
     }
 
     try {
@@ -349,21 +387,11 @@ Return as JSON:
   }
 }`;
 
-      const response = await this.client.chat.completions.create({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'user',
-            content: prompt,
-          },
-        ],
-        max_tokens: 2000,
-        temperature: 0.7,
-      });
-
-      const content = response.choices[0].message.content;
+      const result = await this.model.generateContent(prompt);
+      const response = await result.response;
+      const content = response.text();
       const jsonMatch = content.match(/\{[\s\S]*\}/);
-      
+
       if (jsonMatch) {
         return JSON.parse(jsonMatch[0]);
       }
@@ -376,12 +404,269 @@ Return as JSON:
   }
 
   /**
+   * Detailed competitive comparison between your app and a competitor
+   */
+  async detailedCompetitorComparison(myAppId, competitorId, country = 'us') {
+    if (!this.model) {
+      throw new Error('AI service not configured. Please set GEMINI_API_KEY.');
+    }
+
+    try {
+      // Fetch both apps data
+      const [myApp, competitorApp] = await Promise.all([
+        appStoreService.getAppById(myAppId, country),
+        appStoreService.getAppById(competitorId, country),
+      ]);
+
+      // Extract keywords from both apps
+      const [myAppKeywords, competitorKeywords] = await Promise.all([
+        appStoreService.extractAppKeywords(myAppId, country),
+        appStoreService.extractAppKeywords(competitorId, country),
+      ]);
+
+      const prompt = `You are an elite App Store Optimization (ASO) consultant. Conduct a deep competitive analysis comparing two apps.
+
+YOUR APP (Client):
+Name: ${myApp.name}
+Category: ${myApp.category}
+Description: ${myApp.description?.slice(0, 800) || 'No description'}
+Rating: ${myApp.rating || 'N/A'} (${myApp.ratingCount || 0} reviews)
+Keywords (extracted): ${myAppKeywords.keywords.slice(0, 25).map(k => k.keyword).join(', ')}
+
+COMPETITOR APP:
+Name: ${competitorApp.name}
+Category: ${competitorApp.category}
+Description: ${competitorApp.description?.slice(0, 800) || 'No description'}
+Rating: ${competitorApp.rating || 'N/A'} (${competitorApp.ratingCount || 0} reviews)
+Keywords (extracted): ${competitorKeywords.keywords.slice(0, 25).map(k => k.keyword).join(', ')}
+
+TASK: Provide a comprehensive, actionable competitive analysis with:
+
+1. HOW THE COMPETITOR IS OUTPERFORMING:
+   - Analyze their keyword strategy (which keywords they use that you don't, density, placement)
+   - Metadata structure (title, subtitle optimization)
+   - Description quality and keyword integration
+   - User perception (based on ratings and reviews)
+   - Specific advantages they have
+
+2. STEP-BY-STEP IMPROVEMENT PLAN:
+   - Provide 5-8 specific, actionable steps
+   - Each step should include:
+     * Clear action title
+     * Detailed explanation
+     * Recommended keywords to use
+     * Expected impact
+
+Return as JSON:
+{
+  "competitorAdvantages": [
+    "advantage 1 with specific details",
+    "advantage 2 with specific details",
+    ...
+  ],
+  "improvementSteps": [
+    {
+      "title": "Action step title",
+      "description": "Detailed explanation of what to do and why",
+      "keywords": ["keyword1", "keyword2"],
+      "expectedImpact": "What improvement to expect"
+    },
+    ...
+  ]
+}
+
+Be specific, data-driven, and actionable. Focus on concrete ASO strategies that can be implemented immediately.`;
+
+      const aiResult = await this.model.generateContent(prompt);
+      const response = await aiResult.response;
+      const content = response.text();
+      const jsonMatch = content.match(/\{[\s\S]*\}/);
+
+      let analysis = {
+        competitorAdvantages: [],
+        improvementSteps: [],
+      };
+
+      if (jsonMatch) {
+        try {
+          analysis = JSON.parse(jsonMatch[0]);
+        } catch (e) {
+          logger.error('Error parsing detailed comparison:', e.message);
+        }
+      }
+
+      const result = {
+        myApp: {
+          id: myApp.id,
+          name: myApp.name,
+        },
+        competitor: {
+          id: competitorApp.id,
+          name: competitorApp.name,
+        },
+        competitorAdvantages: analysis.competitorAdvantages,
+        improvementSteps: analysis.improvementSteps,
+        analyzedAt: new Date().toISOString(),
+      };
+
+      return result;
+    } catch (error) {
+      logger.error('Error in detailed competitor comparison:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * Generate comprehensive keyword ideas for a category/niche
+   * Used for opportunity discovery
+   */
+  async generateCategoryKeywords(category, targetAudience = '', count = 10, referenceKeyword = null) {
+    if (!this.model) {
+      throw new Error('AI service not configured. Please set GEMINI_API_KEY.');
+    }
+
+    try {
+      const referenceContext = referenceKeyword
+        ? `\n\nIMPORTANT: Generate keywords that are RELATED TO or VARIATIONS OF the reference keyword: "${referenceKeyword}". Include semantic variations, synonyms, long-tail versions, and problem-solution combinations around this core concept.`
+        : '';
+
+      const prompt = `You are an expert ASO strategist and keyword researcher. Generate a comprehensive list of keyword ideas for the "${category}" category in the App Store.
+
+Target Audience: ${targetAudience || 'General users'}
+Count Goal: ${count}+ keywords${referenceContext}
+
+Generate diverse keyword variations including:
+
+1. **Primary Keywords** - Core category terms (e.g., "fitness tracker", "workout app")
+2. **Feature Keywords** - Specific features users search for (e.g., "calorie counter", "step tracker")
+3. **User Intent Keywords** - What users type when they have a need (e.g., "lose weight fast", "build muscle at home")
+4. **Long-tail Keywords** - Specific, less competitive phrases (e.g., "beginner home workout no equipment")
+5. **Synonym Variations** - Different ways to express the same concept
+6. **Problem-Solution Keywords** - Pain points users want to solve (e.g., "quick morning workout", "office desk exercises")
+7. **Modifiers** - Combined with action words (e.g., "track calories", "count steps", "monitor progress")
+
+Return ONLY a JSON array of keyword strings: ["keyword1", "keyword2", "keyword3", ...]
+
+Be creative and think like a user searching the App Store. Include both broad and specific terms. Mix short and long-tail keywords. Aim for ${count} diverse keywords.`;
+
+      const result = await this.model.generateContent(prompt);
+      const response = await result.response;
+      const content = response.text();
+
+      // Parse JSON array
+      const jsonMatch = content.match(/\[[\s\S]*\]/);
+
+      if (jsonMatch) {
+        try {
+          const keywords = JSON.parse(jsonMatch[0]);
+          logger.info(`Generated ${keywords.length} category keywords for: ${category}`);
+          return keywords;
+        } catch (parseError) {
+          logger.error('Error parsing keyword generation response:', parseError.message);
+          // Fallback: extract keywords from lines
+          return this.extractKeywordsFromLines(content);
+        }
+      }
+
+      return this.extractKeywordsFromLines(content);
+    } catch (error) {
+      logger.error('Error generating category keywords:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * Generate creative app concept ideas based on high-opportunity keywords
+   */
+  async generateAppConcepts(keywords, category, count = 5) {
+    if (!this.model) {
+      throw new Error('AI service not configured. Please set GEMINI_API_KEY.');
+    }
+
+    try {
+      const prompt = `You are a creative product strategist specializing in mobile apps. Based on these high-opportunity keywords, suggest ${count} innovative app concepts.
+
+High-Opportunity Keywords: ${keywords.slice(0, 20).join(', ')}
+Category: ${category}
+
+Market Gap Analysis: These keywords have high search volume but moderate competition, indicating underserved demand and opportunity for new apps.
+
+For each app idea, provide a structured concept that solves real user problems and leverages the keyword opportunities.
+
+Return as JSON array with ${count} app concepts:
+[
+  {
+    "name": "Creative, memorable app name (2-4 words)",
+    "elevatorPitch": "One compelling sentence describing the app's unique value",
+    "description": "2-3 sentences explaining what the app does and why users need it",
+    "targetKeywords": ["keyword1", "keyword2", "keyword3", "keyword4", "keyword5"],
+    "uniqueSellingPoints": ["USP 1 - what makes it different", "USP 2", "USP 3"],
+    "keyFeatures": ["Core feature 1", "Core feature 2", "Core feature 3", "Core feature 4", "Core feature 5"],
+    "targetAudience": "Specific user demographic who would benefit most",
+    "estimatedDifficulty": "Easy|Moderate|Hard"
+  }
+]
+
+Focus on:
+- Realistic, buildable apps (not sci-fi concepts)
+- Solving specific pain points the keywords reveal
+- Unique angles that differentiate from existing apps
+- Practical features users actually need
+- Clear monetization potential
+
+Be creative but grounded. Each idea should be distinct and valuable.`;
+
+      const aiResult = await this.model.generateContent(prompt);
+      const response = await aiResult.response;
+      const content = response.text();
+      const jsonMatch = content.match(/\[[\s\S]*\]/);
+
+      if (jsonMatch) {
+        try {
+          const concepts = JSON.parse(jsonMatch[0]);
+          logger.info(`Generated ${concepts.length} app concepts for category: ${category}`);
+          return concepts;
+        } catch (e) {
+          logger.error('Error parsing app concepts:', e.message);
+          return [];
+        }
+      }
+
+      return [];
+    } catch (error) {
+      logger.error('Error generating app concepts:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * Helper to extract keywords from lines when JSON parsing fails
+   */
+  extractKeywordsFromLines(text) {
+    const keywords = [];
+    const lines = text.split('\n');
+
+    for (const line of lines) {
+      // Match quoted strings or simple text
+      const matches = line.match(/"([^"]+)"/g) || [];
+      matches.forEach((match) => {
+        const keyword = match.replace(/"/g, '').trim().toLowerCase();
+        if (keyword.length > 2 && keyword.length < 50 && !keywords.includes(keyword)) {
+          keywords.push(keyword);
+        }
+      });
+    }
+
+    return keywords.slice(0, 100); // Limit to 100
+  }
+
+  /**
    * Helper to extract keywords from text when JSON parsing fails
    */
   extractKeywordsFromText(text) {
     const keywords = [];
     const lines = text.split('\n');
-    
+
     for (const line of lines) {
       const match = line.match(/^[\d\-\*\.]+\s*["']?([^"'\n:]+)["']?/);
       if (match && match[1]) {

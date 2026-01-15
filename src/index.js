@@ -5,6 +5,7 @@ import { RateLimiterMemory } from 'rate-limiter-flexible';
 import { config } from './config/index.js';
 import { logger } from './utils/logger.js';
 import routes from './routes/index.js';
+import { analyticsMiddleware } from './middleware/analytics.js';
 
 const app = express();
 
@@ -15,7 +16,8 @@ app.use(helmet());
 app.use(cors({
   origin: process.env.CORS_ORIGIN || '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-session-id'],
+  exposedHeaders: ['X-Session-ID'],
 }));
 
 // Body parsing
@@ -54,6 +56,9 @@ app.use((req, res, next) => {
   });
   next();
 });
+
+// Analytics middleware - track all requests to database
+app.use(analyticsMiddleware);
 
 // Mount API routes
 app.use('/api', routes);
@@ -103,17 +108,17 @@ app.get('/api/docs', (req, res) => {
     title: 'ASO Keyword API Documentation',
     version: '1.0.0',
     description: 'Complete API for App Store Optimization with AI-powered keyword research',
-    
+
     authentication: {
       type: 'API Key (coming soon)',
       header: 'Authorization: Bearer <api_key>',
     },
-    
+
     rateLimit: {
       requests: config.rateLimit.maxRequests,
       window: `${config.rateLimit.windowMs / 1000} seconds`,
     },
-    
+
     endpoints: [
       {
         group: 'Keywords',
@@ -301,7 +306,7 @@ app.get('/api/docs', (req, res) => {
         ],
       },
     ],
-    
+
     errors: {
       400: 'Bad Request - Invalid parameters',
       404: 'Not Found - Resource not found',
@@ -334,9 +339,9 @@ app.listen(PORT, () => {
   logger.info(`🚀 ASO Keyword API running on port ${PORT}`);
   logger.info(`📚 Documentation: http://localhost:${PORT}/api/docs`);
   logger.info(`🔍 Health check: http://localhost:${PORT}/api/health`);
-  
-  if (!config.openaiApiKey) {
-    logger.warn('⚠️  OPENAI_API_KEY not set - AI features will be disabled');
+
+  if (!config.geminiApiKey) {
+    logger.warn('⚠️  GEMINI_API_KEY not set - AI features will be disabled');
   }
   if (!config.deeplApiKey) {
     logger.warn('⚠️  DEEPL_API_KEY not set - Translation features will be limited');

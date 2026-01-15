@@ -4,10 +4,10 @@ dotenv.config();
 export const config = {
   port: process.env.PORT || 3000,
   nodeEnv: process.env.NODE_ENV || 'development',
-  
+
   // AI Configuration
-  openaiApiKey: process.env.OPENAI_API_KEY,
-  
+  geminiApiKey: process.env.GEMINI_API_KEY,
+
   // Apple Search Ads Configuration
   apple: {
     teamId: process.env.APPLE_TEAM_ID,

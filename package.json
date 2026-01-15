@@ -8,21 +8,28 @@
     "start": "node src/index.js",
     "dev": "node --watch src/index.js"
   },
-  "keywords": ["aso", "app-store-optimization", "keywords", "ai"],
+  "keywords": [
+    "aso",
+    "app-store-optimization",
+    "keywords",
+    "ai"
+  ],
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "express": "^4.18.2",
-    "cors": "^2.8.5",
-    "dotenv": "^16.3.1",
+    "@google/generative-ai": "^0.24.1",
+    "@prisma/client": "^5.22.0",
     "axios": "^1.6.2",
     "cheerio": "^1.0.0-rc.12",
-    "node-cache": "^5.1.2",
-    "openai": "^4.73.0",
-    "rate-limiter-flexible": "^4.0.1",
-    "winston": "^3.11.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-validator": "^7.0.1",
     "helmet": "^7.1.0",
-    "express-validator": "^7.0.1"
+    "node-cache": "^5.1.2",
+    "prisma": "^5.22.0",
+    "rate-limiter-flexible": "^4.0.1",
+    "winston": "^3.11.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.2"

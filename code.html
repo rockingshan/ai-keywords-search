@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>ASO Platform - AI Powered App Optimization</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#f49d25",
+                        "background-light": "#fcfaf8",
+                        "background-dark": "#221a10",
+                        "terracotta": "#c65d3b",
+                        "mustard": "#e3a018",
+                        "sunset-pink": "#ff7eb3",
+                        "sunset-yellow": "#f9d423",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    animation: {
+                        'spin-slow': 'spin 3s linear infinite',
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .font-fill { font-variation-settings: 'FILL' 1; }
+        .sunset-gradient {
+            background: linear-gradient(135deg, #f49d25 0%, #ff7eb3 100%);
+        }
+        .soft-sunset-bg {
+            background: linear-gradient(135deg, rgba(244, 157, 37, 0.1) 0%, rgba(255, 126, 179, 0.1) 100%);
+        }
+        .keyword-chip { transition: all 0.2s; }
+        .keyword-chip:hover { transform: translateY(-1px); }
+        .sticky-column { position: sticky; left: 0; z-index: 10; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-[#1c160d] dark:text-white transition-colors duration-200">
+    <div id="root"></div>
+
+    <!-- React Dependencies -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/history@5/umd/history.development.js"></script>
+    <script src="https://unpkg.com/react-router@6.3.0/umd/react-router.development.js"></script>
+    <script src="https://unpkg.com/react-router-dom@6.3.0/umd/react-router-dom.development.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const { createRoot } = ReactDOM;
+        const { MemoryRouter, Routes, Route, Link, useNavigate, useLocation } = ReactRouterDOM;
+
+        // --- Layout Wrapper ---
+        const AppLayout = ({ children }) => {
+            const navigate = useNavigate();
+            const location = useLocation();
+            const [darkMode, setDarkMode] = useState(false);
+
+            useEffect(() => {
+                if (darkMode) {
+                    document.documentElement.classList.add('dark');
+                    document.documentElement.classList.remove('light');
+                } else {
+                    document.documentElement.classList.add('light');
+                    document.documentElement.classList.remove('dark');
+                }
+            }, [darkMode]);
+
+            const isActive = (path) => location.pathname === path;
+
+            return (
+                <div className="flex h-screen overflow-hidden">
+                    {/* Sidebar Navigation */}
+                    <aside className="w-64 border-r border-[#e8ddce] dark:border-[#3d3224] flex flex-col bg-white dark:bg-[#1a140d]">
+                        <div className="p-6 flex flex-col h-full">
+                            <div className="flex items-center gap-3 mb-8 cursor-pointer" onClick={() => navigate('/')}>
+                                <div className="bg-primary rounded-lg p-2 text-white shadow-sm shadow-primary/20">
+                                    <span className="material-symbols-outlined">analytics</span>
+                                </div>
+                                <div>
+                                    <h1 className="text-[#1c160d] dark:text-white text-base font-bold leading-none">ASO Pro AI</h1>
+                                    <p className="text-[#9c7a49] text-xs font-normal mt-1">Keyword Optimization</p>
+                                </div>
+                            </div>
+                            
+                            <nav className="flex-1 space-y-2">
+                                <Link to="/" className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${isActive('/') ? 'bg-primary/10 text-primary' : 'hover:bg-[#f4eee7] dark:hover:bg-[#3d3224] text-[#1c160d] dark:text-gray-300'}`}>
+                                    <span className={`material-symbols-outlined ${isActive('/') ? 'font-fill' : ''}`}>dashboard</span>
+                                    <p className="text-sm font-semibold">Dashboard</p>
+                                </Link>
+                                <Link to="/metadata" className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${isActive('/metadata') ? 'bg-primary/10 text-primary' : 'hover:bg-[#f4eee7] dark:hover:bg-[#3d3224] text-[#1c160d] dark:text-gray-300'}`}>
+                                    <span className={`material-symbols-outlined ${isActive('/metadata') ? 'font-fill' : ''}`}>auto_awesome</span>
+                                    <p className="text-sm font-semibold">Metadata Lab</p>
+                                </Link>
+                                <Link to="/competitors" className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${isActive('/competitors') ? 'bg-primary/10 text-primary' : 'hover:bg-[#f4eee7] dark:hover:bg-[#3d3224] text-[#1c160d] dark:text-gray-300'}`}>
+                                    <span className={`material-symbols-outlined ${isActive('/competitors') ? 'font-fill' : ''}`}>target</span>
+                                    <p className="text-sm font-semibold">Competitor Gaps</p>
+                                </Link>
+                                <Link to="/intent" className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${isActive('/intent') ? 'bg-primary/10 text-primary' : 'hover:bg-[#f4eee7] dark:hover:bg-[#3d3224] text-[#1c160d] dark:text-gray-300'}`}>
+                                    <span className={`material-symbols-outlined ${isActive('/intent') ? 'font-fill' : ''}`}>psychology</span>
+                                    <p className="text-sm font-semibold">Intent Analysis</p>
+                                </Link>
+                            </nav>
+
+                            <div className="mt-auto space-y-4">
+                                <div className="p-3 bg-terracotta/10 rounded-xl border border-terracotta/20">
+                                    <p className="text-terracotta text-[10px] font-bold uppercase tracking-wider mb-1">Premium Access</p>
+                                    <p className="text-[#1c160d] dark:text-white/70 text-[10px] mb-2">Upgrade to unlock unlimited tracking.</p>
+                                    <button className="w-full py-1.5 bg-terracotta text-white rounded-lg text-[10px] font-bold hover:bg-terracotta/90 transition-all">Upgrade Now</button>
+                                </div>
+                                
+                                <button 
+                                    onClick={() => setDarkMode(!darkMode)}
+                                    className="w-full flex items-center justify-center gap-2 bg-[#f4eee7] dark:bg-[#3d3224] text-[#1c160d] dark:text-white rounded-lg h-10 px-4 font-bold transition-colors"
+                                >
+                                    <span className="material-symbols-outlined text-[20px]">{darkMode ? 'light_mode' : 'dark_mode'}</span>
+                                    <span className="text-sm">{darkMode ? 'Light Mode' : 'Dark Mode'}</span>
+                                </button>
+                                
+                                <div className="flex items-center gap-3 pt-4 border-t border-[#e8ddce] dark:border-[#3d3224]">
+                                    <div className="h-10 w-10 rounded-full bg-cover bg-center border-2 border-primary/20" style={{backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuDPgasBSMGDh9WJs0KVzKpxZo4nzUnLnk26ZT9TwlDep_p-_CZgZviOQdIy4oc6aT3VuMtOb-g673tJBclpsv7KZNE60dvvAafBheLw97QiNmV6r_32XATeAUjbFn3LdC-LIAI5HgTyrczAcprav49Py1SP672SmJ0H-nSX3xbHV6TsHcb48QspuIemYU4Gaietg2dl24t4eRnM1phBh3DMP2Z1vcYVBQPpIZmAvZeVZAf1Cpb5z04V7rwG1IngyFgRV25INAHVsRuN")'}}></div>
+                                    <div className="flex-1 truncate">
+                                        <p className="text-sm font-bold truncate">Alex Chen</p>
+                                        <p className="text-[10px] text-[#9c7a49]">App Strategist</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </aside>
+
+                    {/* Main Scrollable Content */}
+                    <main className="flex-1 flex flex-col overflow-y-auto">
+                        <header className="flex items-center justify-between border-b border-[#f4eee7] dark:border-[#3d3224] px-8 py-4 bg-white/80 dark:bg-[#1a140d]/80 backdrop-blur-md sticky top-0 z-20">
+                            <div className="flex items-center gap-8 flex-1">
+                                <div className="max-w-md w-full">
+                                    <label className="relative block">
+                                        <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-[#9c7a49]">
+                                            <span className="material-symbols-outlined">search</span>
+                                        </span>
+                                        <input className="block w-full rounded-lg border-none bg-[#f4eee7] dark:bg-[#3d3224] py-2 pl-10 pr-3 text-[#1c160d] dark:text-white placeholder-[#9c7a49] focus:ring-2 focus:ring-primary text-sm" placeholder="Search keywords, apps, or URLs..." type="text"/>
+                                    </label>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-4">
+                                <button className="p-2 rounded-lg hover:bg-[#f4eee7] dark:hover:bg-[#3d3224] text-[#1c160d] dark:text-white transition-colors">
+                                    <span className="material-symbols-outlined">notifications</span>
+                                </button>
+                                <button className="p-2 rounded-lg hover:bg-[#f4eee7] dark:hover:bg-[#3d3224] text-[#1c160d] dark:text-white transition-colors">
+                                    <span className="material-symbols-outlined">settings</span>
+                                </button>
+                                <button className="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm shadow-primary/20">
+                                    New Analysis
+                                </button>
+                            </div>
+                        </header>
+                        
+                        <div className="flex-1">
+                            {children}
+                        </div>
+                    </main>
+                </div>
+            );
+        };
+
+        // --- Screen 1: Dashboard ---
+        const Dashboard = () => {
+            const navigate = useNavigate();
+            return (
+                <div className="p-8 space-y-8 animate-in fade-in duration-500">
+                    <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2 text-primary font-medium text-sm">
+                            <span>Keyword Analysis</span>
+                            <span className="material-symbols-outlined text-xs">chevron_right</span>
+                            <span>Productivity</span>
+                        </div>
+                        <h1 className="text-[#1c160d] dark:text-white text-4xl font-extrabold tracking-tight">'Fitness Tracker'</h1>
+                        <p className="text-[#9c7a49] dark:text-gray-400">Last updated: Today at 09:42 AM</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="bg-white dark:bg-[#2d2419] p-6 rounded-xl border border-[#e8ddce] dark:border-[#3d3224] shadow-sm">
+                            <div className="flex justify-between items-start mb-4">
+                                <p className="text-[#1c160d] dark:text-white font-semibold">Popularity</p>
+                                <span className="material-symbols-outlined text-[#9c7a49]">info</span>
+                            </div>
+                            <div className="flex items-baseline gap-2 mb-2">
+                                <span className="text-4xl font-bold text-[#1c160d] dark:text-white">82</span>
+                                <span className="text-[#9c7a49] font-medium">/ 100</span>
+                            </div>
+                            <div className="w-full bg-[#f4eee7] dark:bg-[#3d3224] h-2 rounded-full overflow-hidden">
+                                <div className="bg-primary h-full rounded-full" style={{width: '82%'}}></div>
+                            </div>
+                            <p className="mt-4 text-green-600 dark:text-green-400 text-sm font-bold flex items-center gap-1">
+                                <span className="material-symbols-outlined text-sm">trending_up</span> +5% vs last month
+                            </p>
+                        </div>
+
+                        <div className="bg-white dark:bg-[#2d2419] p-6 rounded-xl border border-[#e8ddce] dark:border-[#3d3224] shadow-sm">
+                            <div className="flex justify-between items-start mb-4">
+                                <p className="text-[#1c160d] dark:text-white font-semibold">Difficulty</p>
+                                <span className="material-symbols-outlined text-[#9c7a49]">info</span>
+                            </div>
+                            <div className="flex items-baseline gap-2 mb-2">
+                                <span className="text-4xl font-bold text-[#1c160d] dark:text-white">45</span>
+                                <span className="text-[#9c7a49] font-medium">/ 100</span>
+                            </div>
+                            <div className="w-full bg-[#f4eee7] dark:bg-[#3d3224] h-2 rounded-full overflow-hidden">
+                                <div className="bg-[#f49d25]/60 h-full rounded-full" style={{width: '45%'}}></div>
+                            </div>
+                            <p className="mt-4 text-red-500 dark:text-red-400 text-sm font-bold flex items-center gap-1">
+                                <span className="material-symbols-outlined text-sm">trending_up</span> +2% higher competition
+                            </p>
+                        </div>
+
+                        <div className="bg-white dark:bg-[#2d2419] p-6 rounded-xl border border-[#e8ddce] dark:border-[#3d3224] shadow-sm">
+                            <p className="text-[#1c160d] dark:text-white font-semibold mb-4">Search Volume Trend</p>
+                            <div className="h-32 flex items-end gap-1">
+                                {[20, 40, 30, 70, 100, 80, 60, 90].map((h, i) => (
+                                    <div key={i} className="bg-primary/20 hover:bg-primary transition-colors w-full rounded-t-sm" style={{height: h + '%'}} title={`Month ${i+1}`}></div>
+                                ))}
+                            </div>
+                            <div className="flex justify-between mt-2 text-[10px] text-[#9c7a49] font-medium uppercase tracking-wider">
+                                <span>Jan</span>
+                                <span>May</span>
+                                <span>Aug</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-gradient-to-r from-primary to-[#ff8c42] p-6 rounded-xl text-white shadow-lg flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            <div className="bg-white/20 p-3 rounded-full">
+                                <span className="material-symbols-outlined">auto_awesome</span>
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-bold">AI Insight: Recommendation for 'Fitness Tracker'</h3>
+                                <p className="text-white/90">We found 12 high-intent keywords that are easier to rank for.</p>
+                            </div>
+                        </div>
+                        <button onClick={() => navigate('/metadata')} className="bg-white text-primary px-6 py-2 rounded-lg font-bold hover:bg-opacity-90 transition-all shadow-sm">View Suggestions</button>
+                    </div>
+
+                    <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                            <h3 className="text-[#1c160d] dark:text-white text-xl font-bold">Top Ranking Apps</h3>
+                            <div className="flex gap-2">
+                                <button className="text-sm font-bold text-[#1c160d] dark:text-white bg-[#f4eee7] dark:bg-[#3d3224] px-4 py-2 rounded-lg">Export CSV</button>
+                                <button onClick={() => navigate('/competitors')} className="text-sm font-bold text-white bg-primary px-4 py-2 rounded-lg">Full Analysis</button>
+                            </div>
+                        </div>
+                        <div className="bg-white dark:bg-[#2d2419] rounded-xl border border-[#e8ddce] dark:border-[#3d3224] overflow-hidden">
+                            <table className="w-full text-left">
+                                <thead className="bg-[#f4eee7] dark:bg-[#3d3224] text-[#9c7a49] text-xs font-bold uppercase tracking-wider">
+                                    <tr>
+                                        <th className="px-6 py-4"># Rank</th>
+                                        <th className="px-6 py-4">App Details</th>
+                                        <th className="px-6 py-4">Rating</th>
+                                        <th className="px-6 py-4">Category Ranking</th>
+                                        <th className="px-6 py-4 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-[#e8ddce] dark:divide-[#3d3224]">
+                                    {[
+                                        {rank: 1, name: "FitPro: Workout Planner", studio: "Health & Fitness Studio", rating: 4.8, reviews: "1.2M", cat: "#2 Health & Fitness", img: "https://lh3.googleusercontent.com/aida-public/AB6AXuBBQSqFmorZbrYQp7DauPhNPOrwr7fkNJgbY6WeP7l7BdlzNYzQK2UG4GELV0JWJDZSlN08GTjAhoVddQDpnMiQLWpQKoojiOJAL42y8pdsJknV-Hg2FeZPl0mfviYMWIJjd_SOr1i1WPfO_n77n7rK81r7POKzIHgN2o8A4nRaNwgxC1v1Z7NHCHjwLC9EGRoIB2UN0pfwD-jefP7l6cmnCm3MQXxCYLQ8FjJUWCIzlFgdgccWzQk7255dEKzBAWIo8tPRXzjby9Rf"},
+                                        {rank: 2, name: "MyDaily Tracker", studio: "SyncLife Inc.", rating: 4.6, reviews: "840k", cat: "#5 Health & Fitness", img: "https://lh3.googleusercontent.com/aida-public/AB6AXuCJbC9TnUKXX2sVhIEAoWW33Sqs9_qsku97-ZKusefN6rK_JRSq3awjQH8uuOyYDmzxtuMt1zJjq5lMSyQ3EuSW-Dab1K2XZnLv6RweAzCW3i4kR5hvFnV7yKJcx-gWWipBUDEq5bM8Y0oQQCV1KayP3czcTHmR_uNZ99kHBUgHhadv8K5VAQY61zFYf20rq2zgwxd2RCFwz_9kS1TOLpnVkfBPjxYg-HJIGwnbfcVhuLIPjq82W580rp7wm8gBpEdcqgGXKcHpMoGe"},
+                                        {rank: 3, name: "ZenFit: Yoga & Body", studio: "Zen Media Group", rating: 4.9, reviews: "320k", cat: "#15 Health & Fitness", img: "https://lh3.googleusercontent.com/aida-public/AB6AXuAst4OBq-si3DDrq-f_RdCtYCwh3zqCUJjd1FZE26UIaxwxtivMZKQbz7rvJ8D33DAHI1buJgZKKDt7JqW64izioyMHEB2ynYcFr2MCbeqm-Qwst5ysMyN7sN--9qoIuanROMxNSLlRmdOp9YLLBvbfr_1Y5pYduRE3De-QZBpuxFg_OGsLN7FH4rdT8mkvfPJFJjOMhFFLJVI9--fc5BmjnkLfVISCcXgEsV8FAjF3_rfDjY-4Qzbabr0tp3QZW54qH0D5isSQHCtW"}
+                                    ].map((app) => (
+                                        <tr key={app.rank} className="hover:bg-background-light dark:hover:bg-[#2a2217] transition-colors">
+                                            <td className="px-6 py-4">
+                                                <span className={`text-xl font-bold ${app.rank === 1 ? 'text-primary' : 'text-[#9c7a49]'}`}>{app.rank}</span>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="size-12 rounded-xl bg-cover bg-center border border-[#e8ddce] dark:border-none" style={{backgroundImage: `url("${app.img}")`}}></div>
+                                                    <div>
+                                                        <p className="text-[#1c160d] dark:text-white font-bold">{app.name}</p>
+                                                        <p className="text-[#9c7a49] text-sm">{app.studio}</p>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-1 text-[#f49d25]">
+                                                    <span className="material-symbols-outlined text-[18px] font-fill">star</span>
+                                                    <span className="text-[#1c160d] dark:text-white font-semibold">{app.rating}</span>
+                                                    <span className="text-[#9c7a49] text-sm">({app.reviews})</span>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <span className="bg-[#f4eee7] dark:bg-[#3d3224] text-[#1c160d] dark:text-white px-3 py-1 rounded-full text-xs font-bold">{app.cat}</span>
+                                            </td>
+                                            <td className="px-6 py-4 text-right">
+                                                <button className="text-[#9c7a49] hover:text-primary">
+                                                    <span className="material-symbols-outlined">more_vert</span>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- Screen 2: Metadata Optimizer ---
+        const MetadataOptimizer = () => {
+            return (
+                <div className="p-8 max-w-7xl mx-auto w-full space-y-8 animate-in slide-in-from-right duration-500">
+                    <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-8">
+                        <div className="max-w-2xl">
+                            <h1 className="text-4xl font-black tracking-tight mb-2">Optimize App Presence</h1>
+                            <p className="text-[#9c7a49]">Leverage AI to refine your title, subtitle, and keyword list for maximum reach.</p>
+                        </div>
+                        <button className="bg-background-light dark:bg-white/5 border border-[#e8ddce] dark:border-[#3d3021] px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-white dark:hover:bg-white/10 transition-all shadow-sm">
+                            <span className="material-symbols-outlined text-primary">auto_awesome</span>
+                            Run AI Analysis
+                        </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                        {[
+                            { label: "Estimated Visibility Lift", value: "+24%", change: "12%", trend: "up", color: "text-[#078810]" },
+                            { label: "Keyword Coverage", value: "16/30", sub: "Optimization Needed", color: "text-primary" },
+                            { label: "Avg. Search Volume", value: "6.2k", change: "2%", trend: "down", color: "text-[#e71008]" }
+                        ].map((stat, i) => (
+                            <div key={i} className="bg-white dark:bg-[#1a140d] p-6 rounded-xl border border-[#e8ddce] dark:border-[#3d3021] shadow-sm">
+                                <p className="text-sm font-medium text-[#9c7a49] mb-1">{stat.label}</p>
+                                <div className="flex items-baseline gap-2">
+                                    <span className="text-3xl font-bold">{stat.value}</span>
+                                    {stat.change && (
+                                        <span className={`${stat.color} text-sm font-bold flex items-center`}>
+                                            <span className="material-symbols-outlined text-sm">{stat.trend === 'up' ? 'trending_up' : 'trending_down'}</span> {stat.change}
+                                        </span>
+                                    )}
+                                    {stat.sub && <span className={`${stat.color} text-sm font-bold`}>{stat.sub}</span>}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                        {/* Current */}
+                        <div className="bg-white dark:bg-[#1a140d] p-6 rounded-2xl border border-[#e8ddce] dark:border-[#3d3021] shadow-md flex flex-col gap-6">
+                            <h3 className="font-bold text-lg flex items-center gap-2"><span className="material-symbols-outlined text-[#9c7a49]">edit_note</span> Current Metadata</h3>
+                            <div className="space-y-4">
+                                <div className="space-y-2">
+                                    <div className="flex justify-between"><label className="text-sm font-bold">App Title</label><span className="text-xs text-[#9c7a49]">18/30</span></div>
+                                    <input className="w-full rounded-lg border-[#e8ddce] dark:border-[#3d3021] dark:bg-background-dark" value="Fitness Buddy Pro" readOnly/>
+                                </div>
+                                <div className="space-y-2">
+                                    <div className="flex justify-between"><label className="text-sm font-bold">Subtitle</label><span className="text-xs text-[#9c7a49]">25/30</span></div>
+                                    <input className="w-full rounded-lg border-[#e8ddce] dark:border-[#3d3021] dark:bg-background-dark" value="Daily workout & diet plans" readOnly/>
+                                </div>
+                                <div className="space-y-2">
+                                    <div className="flex justify-between"><label className="text-sm font-bold">Keywords</label><span className="text-xs text-[#9c7a49]">74/100</span></div>
+                                    <textarea className="w-full rounded-lg border-[#e8ddce] dark:border-[#3d3021] dark:bg-background-dark text-sm" rows="4" readOnly value="fitness, gym, workout, health, exercise, coach, weight loss, bodybuilding, strength, yoga, meditation, tracker, planning"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* AI Suggestions */}
+                        <div className="bg-[#fff9f0] dark:bg-[#2a2218] p-6 rounded-2xl border border-primary/20 shadow-md flex flex-col gap-6 relative overflow-hidden">
+                            <div className="absolute -top-10 -right-10 size-40 bg-primary/10 blur-3xl rounded-full"></div>
+                            <h3 className="font-bold text-lg flex items-center gap-2 text-primary"><span className="material-symbols-outlined font-fill">magic_button</span> AI-Optimized</h3>
+                            
+                            <div className="space-y-4">
+                                <div className="space-y-2">
+                                    <div className="flex justify-between items-center"><label className="text-sm font-bold text-primary">Suggested Title</label><button className="text-primary text-xs font-bold hover:underline">Copy</button></div>
+                                    <div className="p-3 bg-white dark:bg-[#1a140d] border border-primary/30 rounded-lg text-sm font-bold flex justify-between">
+                                        <span>Fitness Buddy: Workout & Gym</span>
+                                        <span className="text-xs bg-primary/10 text-primary px-2 rounded-full">28/30</span>
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <div className="flex justify-between items-center"><label className="text-sm font-bold text-primary">Suggested Subtitle</label><button className="text-primary text-xs font-bold hover:underline">Copy</button></div>
+                                    <div className="p-3 bg-white dark:bg-[#1a140d] border border-primary/30 rounded-lg text-sm font-medium flex justify-between">
+                                        <span>Daily Exercise & Weight Tracker</span>
+                                        <span className="text-xs bg-primary/10 text-primary px-2 rounded-full">29/30</span>
+                                    </div>
+                                </div>
+                                <div className="space-y-3">
+                                    <div className="flex justify-between items-center"><label className="text-sm font-bold text-primary">Strategic Keywords</label><span className="text-xs bg-primary/10 text-primary px-2 rounded-full font-bold">98/100</span></div>
+                                    <div className="flex flex-wrap gap-2">
+                                        {['Personal Trainer', 'Home Workout', 'HIIT Timer', 'Calorie Counter', 'Diet Planner'].map((kw, i) => (
+                                            <div key={i} className="keyword-chip flex items-center gap-2 bg-white dark:bg-[#1a140d] border border-primary/40 px-3 py-1.5 rounded-xl shadow-sm">
+                                                <span className="text-sm font-bold">{kw}</span>
+                                                <span className="text-[10px] uppercase font-black bg-primary text-white px-1.5 rounded">AI Pick</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                                <button className="w-full mt-4 bg-primary text-white py-4 rounded-xl font-black shadow-lg shadow-primary/20 hover:scale-[1.01] transition-all flex items-center justify-center gap-2">
+                                    Apply All Suggestions <span className="material-symbols-outlined">bolt</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8 items-center bg-white dark:bg-[#1a140d] p-8 rounded-2xl border border-[#e8ddce] dark:border-[#3d3021]">
+                        <div>
+                            <h4 className="text-xl font-bold mb-2">Why these changes?</h4>
+                            <p className="text-[#9c7a49] text-sm leading-relaxed">Our AI detected that your current title lacks high-volume action verbs. We've introduced <span className="text-primary font-bold">"Workout & Gym"</span> which has a 20% higher conversion rate.</p>
+                        </div>
+                        <div className="flex justify-end gap-4">
+                            <div className="text-right">
+                                <p className="text-xs text-[#9c7a49] mb-1">Project Score Improvement</p>
+                                <div className="flex items-center gap-3">
+                                    <span className="text-lg font-medium line-through opacity-40">64/100</span>
+                                    <span className="material-symbols-outlined text-primary">arrow_forward</span>
+                                    <span className="text-2xl font-black text-primary">92/100</span>
+                                </div>
+                            </div>
+                            <div className="size-16 rounded-full border-4 border-primary border-t-transparent animate-spin-slow flex items-center justify-center">
+                                <span className="text-xs font-black">92%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- Screen 3: Competitor Keyword Analysis ---
+        const CompetitorAnalysis = () => {
+            return (
+                <div className="flex flex-col animate-in fade-in duration-500">
+                    <div className="p-8">
+                        <div className="flex flex-wrap justify-between items-center gap-4 mb-8">
+                            <div className="flex flex-col gap-1">
+                                <h1 className="text-[#1c160d] dark:text-white text-3xl font-black leading-tight">Competitor Analysis</h1>
+                                <p className="text-[#9c7a49] text-base">Deep-dive into keyword overlaps and gaps across your landscape.</p>
+                            </div>
+                            <div className="flex gap-3">
+                                <button className="flex items-center gap-2 px-4 py-2 bg-[#f4eee7] dark:bg-[#3d2e1c] rounded-lg text-sm font-bold">Export CSV</button>
+                                <button className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-bold">Add Competitor</button>
+                            </div>
+                        </div>
+
+                        <div className="rounded-xl border border-primary/30 bg-primary/5 p-6 mb-8 relative overflow-hidden">
+                            <div className="flex flex-col gap-2 max-w-2xl relative z-10">
+                                <div className="flex items-center gap-2 text-primary">
+                                    <span className="material-symbols-outlined text-lg">auto_awesome</span>
+                                    <p className="text-base font-bold uppercase tracking-widest">AI Summary</p>
+                                </div>
+                                <p className="text-[#1c160d] dark:text-white/90 text-lg italic">
+                                    "By targeting <span className="text-terracotta font-bold">HIIT Workouts</span>, you could increase organic reach by <span className="text-green-600 font-bold">12%</span>."
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                            {[
+                                {label: "YOUR APP", name: "Project Alpha", color: "bg-primary", vis: "84%"},
+                                {label: "COMPETITOR A", name: "FitMaster Pro", color: "bg-[#3b82f6]", vis: "72%"},
+                                {label: "COMPETITOR B", name: "Workout Hero", color: "bg-[#10b981]", vis: "65%"},
+                                {label: "COMPETITOR C", name: "StrongLift", color: "bg-[#ef4444]", vis: "48%"}
+                            ].map((app, i) => (
+                                <div key={i} className="bg-white dark:bg-[#2d2418] p-4 rounded-xl border border-[#e8ddce] dark:border-[#3d2e1c] flex items-center gap-3">
+                                    <div className={`size-12 rounded-xl ${app.color} flex items-center justify-center text-white font-bold text-xl`}>{app.name[0]}</div>
+                                    <div>
+                                        <p className="text-xs font-bold text-[#9c7a49]">{app.label}</p>
+                                        <p className="text-sm font-bold truncate">{app.name}</p>
+                                        <p className="text-[10px] text-green-600 font-bold">Visibility: {app.vis}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className="bg-white dark:bg-[#2d2418] rounded-xl border border-[#e8ddce] dark:border-[#3d2e1c] overflow-hidden">
+                            <table className="w-full text-left border-collapse min-w-[800px]">
+                                <thead className="bg-[#fcfaf8] dark:bg-[#221a10] border-b border-[#e8ddce] dark:border-[#3d2e1c]">
+                                    <tr className="text-xs font-bold text-[#9c7a49] uppercase">
+                                        <th className="p-4">Keyword</th>
+                                        <th className="p-4 text-center">Popularity</th>
+                                        <th className="p-4 text-center text-primary bg-primary/5">Project Alpha</th>
+                                        <th className="p-4 text-center text-[#3b82f6]">FitMaster Pro</th>
+                                        <th className="p-4 text-center text-[#10b981]">Workout Hero</th>
+                                        <th className="p-4">Search Share</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-[#e8ddce] dark:divide-[#3d2e1c]">
+                                    {[
+                                        { kw: 'fitness tracker', pop: 85, alpha: '#1', a: '#4', b: '#9', shares: [45, 25, 20, 10] },
+                                        { kw: 'hiit workouts', pop: 62, alpha: 'GAP', a: '#2', b: '#6', shares: [0, 60, 25, 15], gap: true },
+                                        { kw: 'weight lifting app', pop: 78, alpha: '#3', a: '#1', b: '#15', shares: [30, 50, 10, 10], opp: true }
+                                    ].map((row, i) => (
+                                        <tr key={i} className={`hover:bg-[#fcfaf8] dark:hover:bg-[#2a2115] transition-colors ${row.gap ? 'border-l-4 border-terracotta' : row.opp ? 'border-l-4 border-mustard' : ''}`}>
+                                            <td className="p-4">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-sm font-bold">{row.kw}</span>
+                                                    {row.gap && <span className="px-1.5 py-0.5 bg-terracotta text-white text-[9px] font-bold rounded uppercase">Gap</span>}
+                                                </div>
+                                            </td>
+                                            <td className="p-4 text-center">
+                                                <div className="w-16 h-2 bg-[#f4eee7] dark:bg-[#3d2e1c] rounded-full mx-auto overflow-hidden">
+                                                    <div className="h-full bg-mustard" style={{width: row.pop + '%'}}></div>
+                                                </div>
+                                            </td>
+                                            <td className="p-4 text-center bg-primary/5">
+                                                <span className={`px-3 py-1 rounded-lg text-xs font-bold ${row.alpha.startsWith('#') ? 'bg-green-500 text-white' : 'text-[#9c7a49]'}`}>{row.alpha}</span>
+                                            </td>
+                                            <td className="p-4 text-center">
+                                                <span className="px-3 py-1 bg-[#f4eee7] dark:bg-[#3d2e1c] text-[#1c160d] dark:text-white rounded-lg text-xs font-medium">{row.a}</span>
+                                            </td>
+                                            <td className="p-4 text-center">
+                                                <span className="px-3 py-1 bg-[#f4eee7] dark:bg-[#3d2e1c] text-[#1c160d] dark:text-white rounded-lg text-xs font-medium">{row.b}</span>
+                                            </td>
+                                            <td className="p-4">
+                                                <div className="flex h-4 w-32 bg-[#f4eee7] dark:bg-[#3d2e1c] rounded-full overflow-hidden">
+                                                    <div className="h-full bg-primary" style={{width: row.shares[0] + '%'}}></div>
+                                                    <div className="h-full bg-[#3b82f6]" style={{width: row.shares[1] + '%'}}></div>
+                                                    <div className="h-full bg-[#10b981]" style={{width: row.shares[2] + '%'}}></div>
+                                                    <div className="h-full bg-[#ef4444]" style={{width: row.shares[3] + '%'}}></div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- Screen 4: Search Intent Analysis ---
+        const IntentAnalysis = () => {
+            return (
+                <div className="p-10 space-y-8 animate-in fade-in zoom-in duration-500">
+                    <div className="flex flex-col gap-2">
+                        <h1 className="text-[#1c160d] dark:text-white text-4xl font-black tracking-tight">Search Intent Analysis</h1>
+                        <p className="text-[#9c7a49] dark:text-[#cbb596] text-lg">
+                            Analyzing user psychology for <span className="text-[#1c160d] dark:text-white font-bold bg-sunset-yellow/20 px-1 rounded">"Fitness Tracker"</span>.
+                        </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                        <div className="bg-white dark:bg-[#2d2417] p-6 rounded-xl border border-[#e8ddce] dark:border-[#3d2e1c] shadow-sm">
+                            <p className="text-[#9c7a49] text-xs font-bold uppercase">Avg. Intent Score</p>
+                            <p className="text-3xl font-black mt-2">82.4%</p>
+                            <p className="text-xs text-green-600 font-bold">+5.2% vs last month</p>
+                        </div>
+                        <div className="bg-white dark:bg-[#2d2417] p-6 rounded-xl border border-[#e8ddce] dark:border-[#3d2e1c] shadow-sm">
+                            <p className="text-[#9c7a49] text-xs font-bold uppercase">Main Demographic</p>
+                            <p className="text-3xl font-black mt-2">Gen Z / Female</p>
+                            <div className="w-full bg-[#f4eee7] h-1.5 rounded-full mt-2"><div className="bg-sunset-pink h-full w-[65%] rounded-full"></div></div>
+                        </div>
+                        <div className="bg-white dark:bg-[#2d2417] p-6 rounded-xl border border-[#e8ddce] dark:border-[#3d2e1c] shadow-sm">
+                            <p className="text-[#9c7a49] text-xs font-bold uppercase">Monthly Volume</p>
+                            <p className="text-3xl font-black mt-2">1.28M</p>
+                            <p className="text-xs text-green-600 font-bold">+12% growth</p>
+                        </div>
+                        <div className="sunset-gradient p-6 rounded-xl shadow-lg text-white">
+                            <p className="text-white/80 text-xs font-bold uppercase">AI Confidence</p>
+                            <p className="text-3xl font-black mt-2">Very High</p>
+                            <p className="text-sm font-medium">Based on 45k+ points</p>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+                        <div className="xl:col-span-2 bg-white dark:bg-[#2d2417] border border-[#e8ddce] dark:border-[#3d2e1c] p-6 rounded-xl">
+                            <h2 className="text-xl font-bold mb-6">Intent Relationship Map</h2>
+                            <div className="relative h-[300px] soft-sunset-bg rounded-lg border border-dashed border-primary/20 overflow-hidden">
+                                <div className="absolute top-[40%] left-[40%] size-32 rounded-full bg-primary/60 border-2 border-primary flex items-center justify-center text-white text-xs font-bold text-center p-4">Fitness Tracker</div>
+                                <div className="absolute top-[10%] right-[15%] size-20 rounded-full bg-sunset-pink/40 border-2 border-sunset-pink flex items-center justify-center text-white text-[10px] font-bold text-center">Weight Loss</div>
+                                <div className="absolute bottom-[20%] left-[10%] size-24 rounded-full bg-sunset-yellow/40 border-2 border-sunset-yellow flex items-center justify-center text-white text-[10px] font-bold text-center">Calorie Counter</div>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col gap-6">
+                            <div className="bg-[#2d2417] text-white p-6 rounded-xl shadow-lg relative overflow-hidden">
+                                <div className="relative z-10">
+                                    <div className="flex items-center gap-2 mb-4 text-sunset-yellow">
+                                        <span className="material-symbols-outlined">auto_awesome</span>
+                                        <h3 className="font-bold">Strategic Insight</h3>
+                                    </div>
+                                    <p className="text-sm leading-relaxed text-white/90">
+                                        "Users are looking for <span className="text-primary font-bold">community features</span>. Emphasize 'Challenge Friends' in metadata."
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="bg-white dark:bg-[#2d2417] border border-[#e8ddce] dark:border-[#3d2e1c] p-6 rounded-xl">
+                                <h3 className="font-bold mb-4">Demographic Split</h3>
+                                <div className="space-y-4">
+                                    <div className="flex justify-between items-center text-xs">
+                                        <span>Gen Z (18-24)</span>
+                                        <span className="font-bold">42%</span>
+                                    </div>
+                                    <div className="w-full bg-[#f4eee7] dark:bg-[#3d2e1c] h-1.5 rounded-full overflow-hidden">
+                                        <div className="bg-primary h-full w-[42%]"></div>
+                                    </div>
+                                    <div className="flex justify-between items-center text-xs">
+                                        <span>Millennials (25-34)</span>
+                                        <span className="font-bold">38%</span>
+                                    </div>
+                                    <div className="w-full bg-[#f4eee7] dark:bg-[#3d2e1c] h-1.5 rounded-full overflow-hidden">
+                                        <div className="bg-sunset-pink h-full w-[38%]"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const App = () => {
+            return (
+                <MemoryRouter>
+                    <AppLayout>
+                        <Routes>
+                            <Route path="/" element={<Dashboard />} />
+                            <Route path="/metadata" element={<MetadataOptimizer />} />
+                            <Route path="/competitors" element={<CompetitorAnalysis />} />
+                            <Route path="/intent" element={<IntentAnalysis />} />
+                        </Routes>
+                    </AppLayout>
+                </MemoryRouter>
+            );
+        };
+
+        const root = createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

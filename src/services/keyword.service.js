@@ -1,6 +1,7 @@
 import { appStoreService } from './appStore.service.js';
 import { logger } from '../utils/logger.js';
 import { cache } from '../utils/cache.js';
+import { prisma } from '../db/prisma.js';
 
 export class KeywordService {
   /**
@@ -14,16 +15,16 @@ export class KeywordService {
     try {
       // Get search results to calculate difficulty
       const searchResults = await appStoreService.searchApps(keyword, country, 10);
-      
+
       // Get search suggestions to estimate popularity
       const suggestions = await appStoreService.getSearchSuggestions(keyword, country);
-      
+
       // Calculate difficulty based on competition
       const difficulty = this.calculateDifficulty(searchResults);
-      
+
       // Estimate popularity based on suggestions and search results
       const popularity = this.estimatePopularity(keyword, suggestions, searchResults);
-      
+
       // Get top competing apps
       const topApps = searchResults.slice(0, 5).map((app, index) => ({
         rank: index + 1,
@@ -33,6 +34,7 @@ export class KeywordService {
         rating: app.rating,
         ratingCount: app.ratingCount,
         icon: app.icon,
+        category: app.category,
       }));
 
       const result = {
@@ -45,6 +47,25 @@ export class KeywordService {
         relatedTerms: suggestions.slice(0, 10).map((s) => s.keyword),
         analyzedAt: new Date().toISOString(),
       };
+
+      // Save to database for historical tracking
+      try {
+        await prisma.keywordAnalysis.create({
+          data: {
+            keyword: result.keyword,
+            country: result.country,
+            popularity: result.popularity,
+            difficulty: result.difficulty,
+            competitorCount: result.competitorCount,
+            topApps: JSON.stringify(result.topApps),
+            relatedTerms: JSON.stringify(result.relatedTerms),
+            analyzedAt: new Date(result.analyzedAt),
+          },
+        });
+      } catch (dbError) {
+        // Don't fail the request if DB save fails
+        logger.error('Failed to save keyword analysis to database:', dbError.message);
+      }
 
       cache.set(cacheKey, result, 3600);
       return result;
@@ -123,7 +144,7 @@ export class KeywordService {
     const suggestionMatch = suggestions.find(
       (s) => s.keyword.toLowerCase() === keyword.toLowerCase()
     );
-    
+
     if (suggestionMatch) {
       // Higher position in suggestions = higher popularity
       popularityScore += Math.max(0, 50 - suggestionMatch.position * 5);
@@ -137,7 +158,7 @@ export class KeywordService {
       const avgRatingCount = searchResults.reduce(
         (sum, app) => sum + (app.ratingCount || 0), 0
       ) / searchResults.length;
-      
+
       // More ratings suggest more searches
       popularityScore += Math.min(avgRatingCount / 10000, 20);
     }
@@ -158,7 +179,7 @@ export class KeywordService {
   async getSuggestions(seedKeyword, country = 'us') {
     try {
       const suggestions = await appStoreService.getSearchSuggestions(seedKeyword, country);
-      
+
       // Analyze each suggestion
       const analyzedSuggestions = await Promise.allSettled(
         suggestions.slice(0, 10).map(async (suggestion) => {
@@ -222,10 +243,10 @@ export class KeywordService {
   async trackKeywordRanking(appId, keyword, country = 'us') {
     try {
       const rankings = await appStoreService.getKeywordRankings(keyword, country, 100);
-      
+
       const appRanking = rankings.find((r) => r.app.id === parseInt(appId));
-      
-      return {
+
+      const result = {
         appId,
         keyword,
         country,
@@ -235,6 +256,27 @@ export class KeywordService {
         topCompetitors: rankings.slice(0, 5),
         trackedAt: new Date().toISOString(),
       };
+
+      // Save ranking history to database
+      try {
+        await prisma.rankingHistory.create({
+          data: {
+            appId: result.appId,
+            appName: appRanking ? appRanking.app.name : 'Unknown',
+            keyword: result.keyword,
+            country: result.country,
+            rank: result.rank,
+            isRanking: result.isRanking,
+            totalResults: result.totalResults,
+            topCompetitors: JSON.stringify(result.topCompetitors),
+            trackedAt: new Date(result.trackedAt),
+          },
+        });
+      } catch (dbError) {
+        logger.error('Failed to save ranking history to database:', dbError.message);
+      }
+
+      return result;
     } catch (error) {
       logger.error('Error tracking keyword:', error.message);
       throw error;

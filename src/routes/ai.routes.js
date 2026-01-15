@@ -75,6 +75,31 @@ router.post(
 );
 
 /**
+ * @route   POST /api/ai/detailed-compare
+ * @desc    Detailed competitive comparison between your app and a competitor
+ * @body    myAppId (required), competitorId (required), country (optional)
+ */
+router.post(
+  '/detailed-compare',
+  [
+    body('myAppId').isNumeric().withMessage('Valid app ID is required'),
+    body('competitorId').isNumeric().withMessage('Valid competitor ID is required'),
+    body('country').optional().isLength({ min: 2, max: 2 }).toLowerCase(),
+  ],
+  validate,
+  async (req, res) => {
+    try {
+      const { myAppId, competitorId, country = 'us' } = req.body;
+      const analysis = await aiService.detailedCompetitorComparison(myAppId, competitorId, country);
+      res.json(analysis);
+    } catch (error) {
+      logger.error('Detailed comparison error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  }
+);
+
+/**
  * @route   POST /api/ai/optimize-metadata
  * @desc    Generate optimized app metadata
  * @body    description (required), currentTitle (required), currentSubtitle (optional), targetKeywords[] (required), country (optional)
