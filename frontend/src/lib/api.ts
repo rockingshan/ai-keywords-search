@@ -122,3 +122,38 @@ export const trackedApi = {
   deleteAppIdea: (id: string) =>
     api.delete(`/tracked/app-ideas/${id}`),
 };
+
+export const jobsApi = {
+  // Job Management
+  list: (sessionId?: string) =>
+    api.get('/jobs', { params: { sessionId } }),
+
+  get: (jobId: string) =>
+    api.get(`/jobs/${jobId}`),
+
+  create: (data: {
+    name: string;
+    searchesPerBatch?: number;
+    intervalMinutes?: number;
+    totalCycles?: number;
+    country?: string;
+    strategy?: 'random' | 'category' | 'trending';
+    seedCategory?: string;
+    sessionId?: string;
+    notes?: string;
+  }) =>
+    api.post('/jobs', data),
+
+  start: (jobId: string) =>
+    api.post(`/jobs/${jobId}/start`),
+
+  stop: (jobId: string) =>
+    api.post(`/jobs/${jobId}/stop`),
+
+  delete: (jobId: string) =>
+    api.delete(`/jobs/${jobId}`),
+
+  // Add keywords from job to tracked
+  trackKeywords: (jobId: string, resultIds: string[], sessionId?: string) =>
+    api.post(`/jobs/${jobId}/track-keywords`, { resultIds, sessionId }),
+};

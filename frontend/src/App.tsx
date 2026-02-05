@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Layout } from "./components/layout/Layout";
 import Dashboard from "./pages/Dashboard";
 import { KeywordResearch } from "./pages/KeywordResearch";
+import { KeywordJobs } from "./pages/KeywordJobs";
 import { MyApps } from "./pages/MyApps";
 import AppDetails from "./pages/AppDetails";
 import { MyTracking } from "./pages/MyTracking";
@@ -26,11 +27,12 @@ const queryClient = new QueryClient({
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
+      <BrowserRouter basename="/keywordsearch">
         <Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<Dashboard />} />
             <Route path="keywords" element={<KeywordResearch />} />
+            <Route path="jobs" element={<KeywordJobs />} />
             <Route path="opportunities" element={<OpportunityFinder />} />
             <Route path="apps" element={<MyApps />} />
             <Route path="apps/:appId" element={<AppDetails />} />

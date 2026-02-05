@@ -5,6 +5,7 @@ import aiRoutes from './ai.routes.js';
 import historyRoutes from './history.routes.js';
 import opportunityRoutes from './opportunity.routes.js';
 import trackedRoutes from './tracked.routes.js';
+import jobsRoutes from './jobs.routes.js';
 import { config } from '../config/index.js';
 
 const router = Router();
@@ -33,5 +34,6 @@ router.use('/ai', aiRoutes);
 router.use('/history', historyRoutes);
 router.use('/opportunities', opportunityRoutes);
 router.use('/tracked', trackedRoutes);
+router.use('/jobs', jobsRoutes);
 
 export default router;

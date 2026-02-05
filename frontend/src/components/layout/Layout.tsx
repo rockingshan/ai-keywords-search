@@ -9,6 +9,7 @@ import {
   Sparkles,
   History,
   Menu,
+  Clock,
 } from 'lucide-react'
 import { useState } from 'react'
 import { cn } from '../../lib/utils'
@@ -16,6 +17,7 @@ import { cn } from '../../lib/utils'
 const navigation = [
   { name: 'Dashboard', to: '/', icon: LayoutDashboard },
   { name: 'Keyword Research', to: '/keywords', icon: Search },
+  { name: 'Keyword Jobs', to: '/jobs', icon: Clock },
   { name: 'Opportunity Finder', to: '/opportunities', icon: Lightbulb },
   { name: 'My Tracking', to: '/tracking', icon: Bookmark },
   { name: 'App Explorer', to: '/apps', icon: Smartphone },

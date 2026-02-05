@@ -5,6 +5,16 @@ import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { Trash2, TrendingUp, Lightbulb, Search, RefreshCw } from 'lucide-react';
 
+// Get session ID from localStorage (same as KeywordJobs)
+const getSessionId = () => {
+  let sessionId = localStorage.getItem('aso-session-id');
+  if (!sessionId) {
+    sessionId = 'session-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem('aso-session-id', sessionId);
+  }
+  return sessionId;
+};
+
 interface TrackedKeyword {
   id: string;
   keyword: string;
@@ -34,6 +44,9 @@ export function MyTracking() {
   const [keywords, setKeywords] = useState<TrackedKeyword[]>([]);
   const [appIdeas, setAppIdeas] = useState<SavedAppIdea[]>([]);
   const [loading, setLoading] = useState(true);
+  const [sessionId] = useState<string>(getSessionId());
+  const [showMigrationBanner, setShowMigrationBanner] = useState(false);
+  const [migrationData, setMigrationData] = useState<{ keywordCount: number; ideaCount: number }>({ keywordCount: 0, ideaCount: 0 });
 
   useEffect(() => {
     loadData();
@@ -42,12 +55,60 @@ export function MyTracking() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [kwResponse, ideasResponse] = await Promise.all([
-        trackedApi.getKeywords(),
-        trackedApi.getAppIdeas(),
+      console.log('Fetching tracked keywords with sessionId:', sessionId);
+
+      // Fetch from BOTH current sessionId AND 'default' to merge old data
+      const [currentSession, defaultSession, currentIdeas, defaultIdeas] = await Promise.all([
+        trackedApi.getKeywords(sessionId).catch(() => ({ data: { keywords: [] } })),
+        trackedApi.getKeywords('default').catch(() => ({ data: { keywords: [] } })),
+        trackedApi.getAppIdeas(sessionId).catch(() => ({ data: { ideas: [] } })),
+        trackedApi.getAppIdeas('default').catch(() => ({ data: { ideas: [] } })),
       ]);
-      setKeywords(kwResponse.data.keywords);
-      setAppIdeas(ideasResponse.data.ideas);
+
+      // Merge keywords from both sessions (deduplicate by keyword+country)
+      const keywordMap = new Map<string, TrackedKeyword>();
+
+      // Add from current session first (priority)
+      currentSession.data.keywords.forEach((kw: TrackedKeyword) => {
+        const key = `${kw.keyword}-${kw.country}`;
+        keywordMap.set(key, kw);
+      });
+
+      // Add from default session if not already present
+      defaultSession.data.keywords.forEach((kw: TrackedKeyword) => {
+        const key = `${kw.keyword}-${kw.country}`;
+        if (!keywordMap.has(key)) {
+          keywordMap.set(key, kw);
+        }
+      });
+
+      const mergedKeywords = Array.from(keywordMap.values());
+
+      // Merge app ideas (deduplicate by id)
+      const ideaMap = new Map<string, SavedAppIdea>();
+      currentIdeas.data.ideas.forEach((idea: SavedAppIdea) => ideaMap.set(idea.id, idea));
+      defaultIdeas.data.ideas.forEach((idea: SavedAppIdea) => {
+        if (!ideaMap.has(idea.id)) ideaMap.set(idea.id, idea);
+      });
+
+      const mergedIdeas = Array.from(ideaMap.values());
+
+      console.log(`Merged data: ${mergedKeywords.length} keywords, ${mergedIdeas.length} ideas`);
+      console.log(`  - From session '${sessionId}': ${currentSession.data.keywords.length} keywords, ${currentIdeas.data.ideas.length} ideas`);
+      console.log(`  - From session 'default': ${defaultSession.data.keywords.length} keywords, ${defaultIdeas.data.ideas.length} ideas`);
+
+      // Show migration banner if there's data in default session
+      const hasDefaultData = defaultSession.data.keywords.length > 0 || defaultIdeas.data.ideas.length > 0;
+      if (hasDefaultData && sessionId !== 'default') {
+        setShowMigrationBanner(true);
+        setMigrationData({
+          keywordCount: defaultSession.data.keywords.length,
+          ideaCount: defaultIdeas.data.ideas.length,
+        });
+      }
+
+      setKeywords(mergedKeywords);
+      setAppIdeas(mergedIdeas);
     } catch (error) {
       console.error('Failed to load tracking data:', error);
     } finally {
@@ -77,6 +138,52 @@ export function MyTracking() {
     }
   };
 
+  const handleMigrateData = async () => {
+    if (!confirm(`Migrate ${migrationData.keywordCount} keywords and ${migrationData.ideaCount} app ideas to your current session?\n\nThis will re-save them under your current session.`)) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Fetch data from default session
+      const [defaultKeywords, defaultIdeas] = await Promise.all([
+        trackedApi.getKeywords('default'),
+        trackedApi.getAppIdeas('default'),
+      ]);
+
+      // Re-track keywords under current session
+      if (defaultKeywords.data.keywords.length > 0) {
+        const keywordsToMigrate = defaultKeywords.data.keywords.map((kw: TrackedKeyword) => ({
+          keyword: kw.keyword,
+          country: kw.country,
+          popularity: kw.popularity,
+          difficulty: kw.difficulty,
+          opportunityScore: kw.opportunityScore,
+          competitorCount: kw.competitorCount,
+        }));
+
+        await trackedApi.trackKeywords(keywordsToMigrate, sessionId);
+      }
+
+      // Re-save app ideas under current session
+      for (const idea of defaultIdeas.data.ideas) {
+        await trackedApi.saveAppIdea({
+          ...idea,
+          sessionId,
+        });
+      }
+
+      alert(`✅ Successfully migrated ${defaultKeywords.data.keywords.length} keywords and ${defaultIdeas.data.ideas.length} app ideas!`);
+      setShowMigrationBanner(false);
+      loadData(); // Refresh
+    } catch (error) {
+      console.error('Migration error:', error);
+      alert('❌ Failed to migrate data. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const getDifficultyColor = (difficulty?: number) => {
     if (!difficulty) return 'text-gray-500';
     if (difficulty <= 30) return 'text-green-500';
@@ -99,12 +206,43 @@ export function MyTracking() {
     <div className="min-h-screen bg-background p-8">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header */}
-        <div>
-          <h1 className="text-4xl font-bold mb-2">My Tracking</h1>
-          <p className="text-muted-foreground">
-            Your tracked keywords and saved app ideas
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-bold mb-2">My Tracking</h1>
+            <p className="text-muted-foreground">
+              Your tracked keywords and saved app ideas
+            </p>
+          </div>
+          <Button onClick={loadData} variant="outline">
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh
+          </Button>
         </div>
+
+        {/* Migration Banner */}
+        {showMigrationBanner && (
+          <Card className="border-yellow-500/50 bg-yellow-500/10">
+            <CardContent className="py-4">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <h3 className="font-semibold text-yellow-500 mb-1">
+                    Legacy Data Detected
+                  </h3>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    We found {migrationData.keywordCount} keywords and {migrationData.ideaCount} app ideas from your previous tracking.
+                    Migrate them to your current session to keep everything organized.
+                  </p>
+                  <Button onClick={handleMigrateData} size="sm" variant="outline" className="border-yellow-500 text-yellow-500 hover:bg-yellow-500/20">
+                    Migrate Data
+                  </Button>
+                </div>
+                <Button onClick={() => setShowMigrationBanner(false)} variant="ghost" size="sm">
+                  Dismiss
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -140,13 +278,13 @@ export function MyTracking() {
             <CardContent className="pt-6">
               <div className="flex items-center space-x-4">
                 <div className="p-3 bg-green-500/10 rounded-xl">
-                  <TrendingUp className="h-6 w-6 text-green-500" />
+                  <TrendingUp className="h-6 w-6 text-green-600" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">
-                    {keywords.filter(kw => (kw.opportunityScore || 0) >= 70).length}
+                  <p className="text-2xl font-bold text-green-600">
+                    {keywords.filter(kw => (kw.opportunityScore || 0) >= 5.0).length}
                   </p>
-                  <p className="text-sm text-muted-foreground">High Opportunity</p>
+                  <p className="text-sm text-muted-foreground">High Opportunity (≥5.0)</p>
                 </div>
               </div>
             </CardContent>
@@ -175,12 +313,14 @@ export function MyTracking() {
                           {kw.opportunityScore !== undefined && kw.opportunityScore !== null && (
                             <Badge
                               className={
-                                kw.opportunityScore >= 70 ? 'bg-green-500' :
-                                kw.opportunityScore >= 40 ? 'bg-yellow-500' :
-                                'bg-red-500'
+                                kw.opportunityScore >= 5.0
+                                  ? 'bg-green-500/20 text-green-600 border-green-500/30'
+                                  : kw.opportunityScore >= 2.0
+                                  ? 'bg-yellow-500/20 text-yellow-600 border-yellow-500/30'
+                                  : 'bg-red-500/20 text-red-600 border-red-500/30'
                               }
                             >
-                              Score: {kw.opportunityScore}
+                              Score: {typeof kw.opportunityScore === 'number' ? kw.opportunityScore.toFixed(1) : kw.opportunityScore}
                             </Badge>
                           )}
                         </div>

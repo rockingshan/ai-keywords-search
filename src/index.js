@@ -6,6 +6,7 @@ import { config } from './config/index.js';
 import { logger } from './utils/logger.js';
 import routes from './routes/index.js';
 import { analyticsMiddleware } from './middleware/analytics.js';
+import { jobRunnerService } from './services/jobRunner.service.js';
 
 const app = express();
 
@@ -335,7 +336,7 @@ app.use((err, req, res, next) => {
 
 // Start server
 const PORT = config.port;
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   logger.info(`🚀 ASO Keyword API running on port ${PORT}`);
   logger.info(`📚 Documentation: http://localhost:${PORT}/api/docs`);
   logger.info(`🔍 Health check: http://localhost:${PORT}/api/health`);
@@ -346,6 +347,10 @@ app.listen(PORT, () => {
   if (!config.deeplApiKey) {
     logger.warn('⚠️  DEEPL_API_KEY not set - Translation features will be limited');
   }
+
+  // Initialize job runner service to resume any running jobs
+  await jobRunnerService.initialize();
+  logger.info('✅ Job Runner service initialized');
 });
 
 export default app;

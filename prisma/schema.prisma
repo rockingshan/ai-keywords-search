@@ -317,3 +317,82 @@ model SavedAppIdea {
   @@index([sessionId])
   @@index([savedAt])
 }
+
+// ============ CONTINUOUS KEYWORD SEARCH JOBS ============
+model KeywordSearchJob {
+  id              String   @id @default(cuid())
+  name            String   // User-defined job name
+
+  // Job Configuration
+  searchesPerBatch Int     // How many keywords to search in each cycle
+  intervalMinutes  Int     // Minutes between each search
+  totalCycles     Int     // Total number of cycles to run
+  country         String   @default("us")
+
+  // Job Status
+  status          String   @default("pending") // "pending", "running", "paused", "completed", "failed"
+  currentCycle    Int      @default(0)
+  totalKeywords   Int      @default(0)
+
+  // Generation Strategy
+  strategy        String   @default("random") // "random", "category", "trending"
+  seedCategory    String?  // Optional category hint for generation
+
+  // Used keywords tracking (to avoid duplicates)
+  usedKeywords    String   @default("[]") // JSON array of already-searched keywords
+
+  // Timestamps
+  createdAt       DateTime @default(now())
+  startedAt      DateTime?
+  completedAt    DateTime?
+  lastRunAt      DateTime?
+
+  // Relations
+  results        KeywordSearchResult[]
+
+  // Metadata
+  sessionId      String?
+  notes          String?
+
+  @@index([status])
+  @@index([sessionId])
+  @@index([createdAt])
+}
+
+model KeywordSearchResult {
+  id              String   @id @default(cuid())
+
+  // Relation to job
+  jobId           String
+  job             KeywordSearchJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  // Search data
+  keyword         String
+  cycleNumber     Int      // Which cycle this was searched in
+
+  // Analysis results
+  popularity      Int?     // 5-100 scale
+  difficulty      Int?     // 0-100 scale
+  competitorCount Int?
+  opportunityScore Float?   // Calculated: popularity / difficulty
+
+  // Raw data
+  topApps         String?  // JSON array of competing apps
+  relatedTerms    String?  // JSON array of related keywords
+
+  // Status
+  status          String   @default("success") // "success", "error", "skipped"
+  errorMessage    String?
+
+  // Timestamps
+  searchedAt      DateTime @default(now())
+
+  // Tracking
+  isTracked       Boolean  @default(false) // Whether user added to tracked keywords
+
+  @@index([jobId])
+  @@index([keyword])
+  @@index([opportunityScore])
+  @@index([status])
+  @@index([searchedAt])
+}

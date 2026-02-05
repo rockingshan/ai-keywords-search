@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, TrendingUp, Sparkles, Download, Filter, BookmarkPlus } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
@@ -7,6 +7,16 @@ import { Badge } from '../components/ui/Badge';
 import { Checkbox } from '../components/ui/Checkbox';
 import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, ReferenceLine } from 'recharts';
 import { trackedApi } from '../lib/api';
+
+// Get session ID from localStorage (shared across all pages)
+const getSessionId = () => {
+  let sessionId = localStorage.getItem('aso-session-id');
+  if (!sessionId) {
+    sessionId = 'session-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem('aso-session-id', sessionId);
+  }
+  return sessionId;
+};
 
 interface KeywordOpportunity {
   keyword: string;
@@ -28,12 +38,18 @@ interface AppIdea {
 }
 
 export function OpportunityFinder() {
+  const [sessionId, setSessionId] = useState<string>('');
   const [category, setCategory] = useState('');
   const [targetAudience, setTargetAudience] = useState('');
   const [country, setCountry] = useState('us');
   const [loading, setLoading] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [referenceKeyword, setReferenceKeyword] = useState('');
+
+  // Initialize session ID
+  useEffect(() => {
+    setSessionId(getSessionId());
+  }, []);
 
   // Filters
   const [minPopularity, setMinPopularity] = useState(0);
@@ -137,26 +153,29 @@ export function OpportunityFinder() {
           competitorCount: kw.competitorCount,
         }));
 
-      await trackedApi.trackKeywords(keywordsToTrack);
-      alert(`Successfully tracked ${keywordsToTrack.length} keywords!`);
+      console.log('Tracking keywords from OpportunityFinder with sessionId:', sessionId);
+      await trackedApi.trackKeywords(keywordsToTrack, sessionId);
+      alert(`✅ Successfully tracked ${keywordsToTrack.length} keyword(s)!\n\nView them in My Tracking page.`);
       setSelectedKeywords(new Set());
     } catch (error: any) {
       console.error('Tracking error:', error);
-      alert('Failed to track keywords');
+      alert('❌ Failed to track keywords: ' + (error.response?.data?.error || error.message));
     }
   };
 
   const handleSaveAppIdea = async (idea: AppIdea) => {
     try {
+      console.log('Saving app idea from OpportunityFinder with sessionId:', sessionId);
       await trackedApi.saveAppIdea({
         ...idea,
         category,
         estimatedDifficulty: idea.estimatedDifficulty as 'Easy' | 'Moderate' | 'Hard',
+        sessionId,
       });
-      alert(`Saved "${idea.name}" to your tracking list!`);
+      alert(`✅ Saved "${idea.name}" to your tracking list!\n\nView it in My Tracking page.`);
     } catch (error: any) {
       console.error('Save app idea error:', error);
-      alert('Failed to save app idea');
+      alert('❌ Failed to save app idea: ' + (error.response?.data?.error || error.message));
     }
   };
 
