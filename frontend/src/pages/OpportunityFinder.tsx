@@ -73,7 +73,7 @@ export function OpportunityFinder() {
     setLoading(true);
     setSelectedKeywords(new Set()); // Clear selection on new search
     try {
-      const response = await fetch('http://localhost:8181/keywordsearch/api/opportunities/discover', {
+      const response = await fetch('/api/opportunities/discover', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -113,7 +113,7 @@ export function OpportunityFinder() {
     try {
       const topKeywords = keywords.slice(0, 15).map(k => k.keyword);
 
-      const response = await fetch('http://localhost:8181/keywordsearch/api/opportunities/app-ideas', {
+      const response = await fetch('/api/opportunities/app-ideas', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

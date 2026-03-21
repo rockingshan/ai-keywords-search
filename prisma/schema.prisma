@@ -396,3 +396,41 @@ model KeywordSearchResult {
   @@index([status])
   @@index([searchedAt])
 }
+
+// ============ GLOBAL KEYWORD BANK ============
+// Tracks ALL keywords across ALL sources to prevent duplicates
+model GlobalKeywordBank {
+  id              String   @id @default(cuid())
+
+  // Core data
+  keyword         String
+  country         String   @default("us")
+
+  // Metrics (copied at time of analysis)
+  popularity      Int?
+  difficulty      Int?
+  competitorCount Int?
+  opportunityScore Float?
+
+  // Full analysis data
+  topApps         String?  // JSON array
+  relatedTerms    String?  // JSON array
+
+  // Source tracking
+  source          String   @default("manual") // "job", "opportunity_discovery", "manual"
+  sourceId        String?  // Job ID or Discovery ID if applicable
+
+  // Whether this keyword has been "explored" (used by a job to generate new related keywords)
+  explored        Boolean  @default(false)
+
+  // Metadata
+  analyzedAt      DateTime @default(now())
+  sessionId       String?
+
+  @@unique([keyword, country])
+  @@index([keyword])
+  @@index([country])
+  @@index([explored])
+  @@index([source])
+  @@index([analyzedAt])
+}

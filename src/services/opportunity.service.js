@@ -1,5 +1,6 @@
 import { aiService } from './ai.service.js';
 import { keywordService } from './keyword.service.js';
+import { globalKeywordBankService } from './globalKeywordBank.service.js';
 import { logger } from '../utils/logger.js';
 import { prisma } from '../db/prisma.js';
 
@@ -132,6 +133,25 @@ export class OpportunityService {
       // Step 6: Get top 20 opportunities
       const topOpportunities = filteredKeywords.slice(0, 20);
 
+      // Step 7: Add to global keyword bank for cross-source deduplication
+      for (const kw of filteredKeywords) {
+        try {
+          await globalKeywordBankService.addKeyword({
+            keyword: kw.keyword,
+            country,
+            popularity: kw.popularity,
+            difficulty: kw.difficulty,
+            competitorCount: kw.competitorCount,
+            opportunityScore: kw.opportunityScore,
+            topApps: kw.topApps,
+            relatedTerms: kw.relatedTerms,
+          }, 'opportunity_discovery', null);
+        } catch (bankError) {
+          logger.error(`Failed to add keyword "${kw.keyword}" to global bank: ${bankError.message}`);
+          // Don't fail the request if global bank insert fails
+        }
+      }
+
       const result = {
         keywords: filteredKeywords,
         stats,
@@ -142,7 +162,7 @@ export class OpportunityService {
         discoveredAt: new Date().toISOString(),
       };
 
-      // Step 7: Save to database
+      // Step 8: Save to database
       try {
         await prisma.opportunityDiscovery.create({
           data: {

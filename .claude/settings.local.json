@@ -25,7 +25,15 @@
       "Bash(docker-compose up:*)",
       "Bash(docker compose:*)",
       "mcp__plugin_playwright_playwright__browser_navigate",
-      "mcp__plugin_playwright_playwright__browser_install"
+      "mcp__plugin_playwright_playwright__browser_install",
+      "Bash(docker-compose down:*)",
+      "Read(//home/shantanu/.claude/**)",
+      "Bash(printenv)",
+      "Bash(docker exec:*)",
+      "Bash(mkdir -p /opt/google)",
+      "Bash(ln -sf /home/shantanu/.cache/ms-playwright/chromium-1208/chrome-linux64 /opt/google/chrome)",
+      "Bash(CHROME=/home/shantanu/.cache/ms-playwright/chromium-1208/chrome-linux64/chrome $CHROME --headless --disable-gpu --dump-dom http://localhost:5173/keywordsearch/)",
+      "Bash(pkill -f \"chrome-linux64/chrome\")"
     ]
   }
 }

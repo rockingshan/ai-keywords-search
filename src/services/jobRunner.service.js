@@ -1,6 +1,7 @@
 import { prisma } from '../db/prisma.js';
 import { keywordService } from './keyword.service.js';
 import { aiService } from './ai.service.js';
+import { globalKeywordBankService } from './globalKeywordBank.service.js';
 import { logger } from '../utils/logger.js';
 
 /**
@@ -225,8 +226,8 @@ export class JobRunnerService {
     logger.info(`Job ${jobId}: Starting cycle ${cycleNumber}`);
 
     try {
-      // Generate keywords for this cycle
-      const keywords = await this.generateKeywords(strategy, seedCategory, searchesPerBatch, usedKeywords);
+      // Generate keywords for this cycle (pass country for global bank check)
+      const keywords = await this.generateKeywords(strategy, seedCategory, searchesPerBatch, usedKeywords, country);
 
       if (keywords.length === 0) {
         logger.warn(`Job ${jobId}: No new keywords generated for cycle ${cycleNumber}`);
@@ -265,6 +266,23 @@ export class JobRunnerService {
               searchedAt: new Date(),
             },
           });
+
+          // Add to global keyword bank for cross-job deduplication
+          try {
+            await globalKeywordBankService.addKeyword({
+              keyword,
+              country,
+              popularity: analysis.popularity,
+              difficulty: analysis.difficulty,
+              competitorCount: analysis.competitorCount,
+              opportunityScore: Math.round(opportunityScore * 10) / 10,
+              topApps: analysis.topApps,
+              relatedTerms: analysis.relatedTerms,
+            }, 'job', jobId);
+          } catch (bankError) {
+            logger.error(`Job ${jobId}: Failed to add keyword to global bank: ${bankError.message}`);
+            // Don't fail the job if global bank insert fails
+          }
 
           // Add to used keywords
           usedKeywords.push(keyword.toLowerCase());
@@ -311,9 +329,16 @@ export class JobRunnerService {
 
   /**
    * Generate keywords based on strategy
+   * Now checks global keyword bank to avoid duplicates across all jobs
    */
-  async generateKeywords(strategy, seedCategory, count, usedKeywords) {
+  async generateKeywords(strategy, seedCategory, count, usedKeywords, country = 'us') {
     const keywords = [];
+
+    // Get all globally analyzed keywords to avoid duplicates
+    const globalAnalyzedKeywords = await globalKeywordBankService.getAnalyzedKeywordStrings(country);
+    const globalAnalyzedSet = new Set(globalAnalyzedKeywords.map(k => k.toLowerCase()));
+
+    logger.info(`Global keyword bank contains ${globalAnalyzedSet.size} analyzed keywords for ${country}`);
 
     try {
       if (strategy === 'random') {
@@ -333,11 +358,14 @@ export class JobRunnerService {
               null
             );
 
-            // Filter out used keywords and add to results
+            // Filter out: used keywords (job-specific), globally analyzed keywords, and duplicates in current batch
             const newKeywords = categoryKeywords
               .filter(kw => {
                 const kwLower = kw.toLowerCase().trim();
-                return kwLower && !usedKeywords.includes(kwLower) && !keywords.includes(kw);
+                return kwLower &&
+                  !usedKeywords.includes(kwLower) &&
+                  !globalAnalyzedSet.has(kwLower) &&
+                  !keywords.includes(kw.toLowerCase());
               })
               .slice(0, Math.ceil(count / 3)); // Take more than 1 to ensure we reach the count
 
@@ -368,7 +396,10 @@ export class JobRunnerService {
 
             const newKeywords = categoryKeywords.filter(kw => {
               const kwLower = kw.toLowerCase().trim();
-              return kwLower && !usedKeywords.includes(kwLower) && !keywords.includes(kw);
+              return kwLower &&
+                !usedKeywords.includes(kwLower) &&
+                !globalAnalyzedSet.has(kwLower) &&
+                !keywords.includes(kw.toLowerCase());
             });
 
             keywords.push(...newKeywords);
