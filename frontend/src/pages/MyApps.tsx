@@ -61,8 +61,8 @@ export function MyApps() {
   return (
     <div className="relative">
       {/* Hero Section */}
-      <div className="relative overflow-hidden bg-gradient-dark border-b border-gray-800/50">
-        <div className="absolute inset-0 opacity-20">
+      <div className="relative overflow-hidden bg-gradient-dark border-b border-stone-800/50">
+        <div className="absolute inset-0 opacity-30">
           <div className="absolute top-20 right-10 h-64 w-64 rounded-full bg-primary/30 blur-3xl animate-pulse"></div>
           <div className="absolute bottom-20 left-10 h-80 w-80 rounded-full bg-orange-500/20 blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
         </div>
@@ -123,7 +123,7 @@ export function MyApps() {
               </div>
 
               {error && (
-                <div className="p-4 rounded-xl bg-destructive/10 text-destructive border border-destructive/20">
+                <div className="p-4 rounded-xl bg-red-500/10 text-red-400 border border-red-500/20">
                   <p className="text-sm">{error}</p>
                 </div>
               )}
@@ -162,7 +162,7 @@ export function MyApps() {
                     <CardContent className="pt-6">
                       <div className="flex items-start gap-4 mb-4">
                         <div
-                          className="size-16 rounded-xl bg-cover bg-center border border-border flex-shrink-0"
+                          className="size-16 rounded-xl bg-cover bg-center border border-stone-700 flex-shrink-0"
                           style={{
                             backgroundImage: app.icon ? `url("${app.icon}")` : 'none',
                             backgroundColor: app.icon ? 'transparent' : '#f4eee7'
@@ -212,7 +212,7 @@ export function MyApps() {
                           variant="outline"
                           size="sm"
                           onClick={() => handleRemoveApp(app.id, app.name)}
-                          className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                          className="text-red-400 hover:bg-red-500/10 hover:text-red-300"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>

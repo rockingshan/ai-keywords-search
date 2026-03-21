@@ -28,8 +28,8 @@ export function History() {
   return (
     <div className="relative">
       {/* Hero Section */}
-      <div className="relative overflow-hidden bg-gradient-dark border-b border-gray-800/50">
-        <div className="absolute inset-0 opacity-20">
+      <div className="relative overflow-hidden bg-gradient-dark border-b border-stone-800/50">
+        <div className="absolute inset-0 opacity-30">
           <div className="absolute top-20 left-1/4 h-64 w-64 rounded-full bg-amber-500/30 blur-3xl animate-pulse"></div>
           <div className="absolute bottom-20 right-1/4 h-80 w-80 rounded-full bg-orange-500/20 blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
         </div>
@@ -112,7 +112,7 @@ export function History() {
                       className="flex items-center justify-between p-4 rounded-xl hover:bg-accent transition-all hover-lift"
                     >
                       <div className="flex items-center space-x-4">
-                        <div className="flex items-center justify-center h-10 w-10 rounded-xl bg-gradient-warm text-primary-foreground font-bold glow-orange-sm">
+                        <div className="flex items-center justify-center h-10 w-10 rounded-xl bg-gradient-warm text-primary-foreground font-bold glow-orange">
                           {index + 1}
                         </div>
                         <div>
@@ -268,7 +268,7 @@ export function History() {
                     key={index}
                     className="flex items-center gap-4 p-3 rounded-lg hover:bg-accent transition-all"
                   >
-                    <div className="h-2 w-2 rounded-full bg-gradient-warm glow-orange-sm flex-shrink-0"></div>
+                    <div className="h-2 w-2 rounded-full bg-gradient-warm glow-orange flex-shrink-0"></div>
                     <div className="flex-1">
                       <p className="font-medium">{item.keyword}</p>
                       <p className="text-xs text-muted-foreground">

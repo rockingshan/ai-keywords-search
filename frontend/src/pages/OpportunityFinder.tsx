@@ -211,15 +211,15 @@ export function OpportunityFinder() {
   };
 
   const getScoreColor = (score: number) => {
-    if (score >= 70) return 'text-green-600';
-    if (score >= 40) return 'text-yellow-600';
-    return 'text-red-600';
+    if (score >= 70) return 'text-emerald-400';
+    if (score >= 40) return 'text-amber-400';
+    return 'text-red-400';
   };
 
   const getDifficultyColor = (difficulty: number) => {
-    if (difficulty < 30) return 'bg-green-100 text-green-800';
-    if (difficulty < 60) return 'bg-yellow-100 text-yellow-800';
-    return 'bg-red-100 text-red-800';
+    if (difficulty < 30) return 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+    if (difficulty < 60) return 'bg-amber-500/20 text-amber-400 border border-amber-500/30';
+    return 'bg-red-500/20 text-red-400 border border-red-500/30';
   };
 
   const sortedKeywords = [...keywords].sort((a, b) => {
@@ -275,7 +275,7 @@ export function OpportunityFinder() {
               <select
                 value={country}
                 onChange={(e) => setCountry(e.target.value)}
-                className="w-full h-10 px-3 rounded-xl bg-card border border-input"
+                className="w-full h-10 px-3 rounded-xl bg-card border border-stone-800 text-foreground"
               >
                 <option value="us">🇺🇸 United States</option>
                 <option value="gb">🇬🇧 United Kingdom</option>
@@ -430,11 +430,11 @@ export function OpportunityFinder() {
                     if (active && payload && payload[0]) {
                       const data = payload[0].payload;
                       return (
-                        <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-lg border">
-                          <p className="font-bold">{data.keyword}</p>
-                          <p className="text-sm">Popularity: {data.popularity}</p>
-                          <p className="text-sm">Difficulty: {data.difficulty}</p>
-                          <p className="text-sm font-bold">Score: {data.opportunityScore}</p>
+                        <div className="bg-card p-3 rounded-lg shadow-lg border border-stone-700">
+                          <p className="font-bold text-foreground">{data.keyword}</p>
+                          <p className="text-sm text-muted-foreground">Popularity: {data.popularity}</p>
+                          <p className="text-sm text-muted-foreground">Difficulty: {data.difficulty}</p>
+                          <p className="text-sm font-bold text-primary">Score: {data.opportunityScore}</p>
                         </div>
                       );
                     }
@@ -466,7 +466,7 @@ export function OpportunityFinder() {
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value as any)}
-                    className="px-3 py-2 rounded-lg border text-sm"
+                    className="px-3 py-2 rounded-lg border border-stone-700 bg-card text-foreground text-sm"
                   >
                     <option value="opportunityScore">Opportunity Score</option>
                     <option value="popularity">Popularity</option>
@@ -523,8 +523,8 @@ export function OpportunityFinder() {
                         <td className="p-3 font-medium">{kw.keyword}</td>
                         <td className="p-3 text-center">
                           <div className="flex items-center justify-center gap-2">
-                            <div className="w-20 bg-gray-200 rounded-full h-2">
-                              <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${kw.popularity}%` }}></div>
+                            <div className="w-20 bg-secondary rounded-full h-2">
+                              <div className="bg-gradient-warm h-2 rounded-full" style={{ width: `${kw.popularity}%` }}></div>
                             </div>
                             <span className="text-xs">{kw.popularity}</span>
                           </div>

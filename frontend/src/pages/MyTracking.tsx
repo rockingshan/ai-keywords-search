@@ -185,10 +185,10 @@ export function MyTracking() {
   };
 
   const getDifficultyColor = (difficulty?: number) => {
-    if (!difficulty) return 'text-gray-500';
-    if (difficulty <= 30) return 'text-green-500';
-    if (difficulty <= 60) return 'text-yellow-500';
-    return 'text-red-500';
+    if (!difficulty) return 'text-stone-500';
+    if (difficulty <= 30) return 'text-emerald-400';
+    if (difficulty <= 60) return 'text-amber-400';
+    return 'text-red-400';
   };
 
   if (loading) {
@@ -246,42 +246,42 @@ export function MyTracking() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card>
+          <Card className="card-hover">
             <CardContent className="pt-6">
               <div className="flex items-center space-x-4">
-                <div className="p-3 bg-blue-500/10 rounded-xl">
-                  <Search className="h-6 w-6 text-blue-500" />
+                <div className="p-3 bg-primary/10 rounded-xl">
+                  <Search className="h-6 w-6 text-primary" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">{keywords.length}</p>
+                  <p className="text-2xl font-bold text-gradient">{keywords.length}</p>
                   <p className="text-sm text-muted-foreground">Tracked Keywords</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="card-hover">
             <CardContent className="pt-6">
               <div className="flex items-center space-x-4">
-                <div className="p-3 bg-purple-500/10 rounded-xl">
-                  <Lightbulb className="h-6 w-6 text-purple-500" />
+                <div className="p-3 bg-primary/10 rounded-xl">
+                  <Lightbulb className="h-6 w-6 text-primary" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">{appIdeas.length}</p>
+                  <p className="text-2xl font-bold text-gradient">{appIdeas.length}</p>
                   <p className="text-sm text-muted-foreground">Saved App Ideas</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="card-hover">
             <CardContent className="pt-6">
               <div className="flex items-center space-x-4">
-                <div className="p-3 bg-green-500/10 rounded-xl">
-                  <TrendingUp className="h-6 w-6 text-green-600" />
+                <div className="p-3 bg-emerald-500/10 rounded-xl">
+                  <TrendingUp className="h-6 w-6 text-emerald-400" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-green-600">
+                  <p className="text-2xl font-bold text-emerald-400">
                     {keywords.filter(kw => (kw.opportunityScore || 0) >= 5.0).length}
                   </p>
                   <p className="text-sm text-muted-foreground">High Opportunity (≥5.0)</p>
@@ -312,12 +312,12 @@ export function MyTracking() {
                           <Badge variant="outline">{kw.country.toUpperCase()}</Badge>
                           {kw.opportunityScore !== undefined && kw.opportunityScore !== null && (
                             <Badge
-                              className={
+                              variant={
                                 kw.opportunityScore >= 5.0
-                                  ? 'bg-green-500/20 text-green-600 border-green-500/30'
+                                  ? 'success'
                                   : kw.opportunityScore >= 2.0
-                                  ? 'bg-yellow-500/20 text-yellow-600 border-yellow-500/30'
-                                  : 'bg-red-500/20 text-red-600 border-red-500/30'
+                                  ? 'warning'
+                                  : 'danger'
                               }
                             >
                               Score: {typeof kw.opportunityScore === 'number' ? kw.opportunityScore.toFixed(1) : kw.opportunityScore}
@@ -343,7 +343,7 @@ export function MyTracking() {
                         variant="ghost"
                         size="sm"
                         onClick={() => deleteKeyword(kw.id)}
-                        className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                        className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -378,10 +378,10 @@ export function MyTracking() {
                         <div className="flex gap-2 mb-3">
                           <Badge variant="outline">{idea.category}</Badge>
                           <Badge
-                            className={
-                              idea.estimatedDifficulty === 'Easy' ? 'bg-green-500' :
-                              idea.estimatedDifficulty === 'Moderate' ? 'bg-yellow-500' :
-                              'bg-red-500'
+                            variant={
+                              idea.estimatedDifficulty === 'Easy' ? 'success' :
+                              idea.estimatedDifficulty === 'Moderate' ? 'warning' :
+                              'danger'
                             }
                           >
                             {idea.estimatedDifficulty}
@@ -392,7 +392,7 @@ export function MyTracking() {
                         variant="ghost"
                         size="sm"
                         onClick={() => deleteAppIdea(idea.id)}
-                        className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                        className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>

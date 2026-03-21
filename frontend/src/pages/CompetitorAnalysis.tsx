@@ -84,7 +84,7 @@ const CompetitorAnalysis = () => {
         </div>
 
         {myApps.length === 0 && trackedApps.length === 0 ? (
-          <div className="bg-card p-12 rounded-xl border border-gray-800 text-center">
+          <div className="bg-card p-12 rounded-xl border border-stone-800 text-center">
             <span className="material-symbols-outlined text-6xl text-muted-foreground mb-4">search_off</span>
             <h3 className="text-xl font-bold mb-2 text-foreground">No Apps Available</h3>
             <p className="text-muted-foreground max-w-md mx-auto mb-6">
@@ -100,8 +100,8 @@ const CompetitorAnalysis = () => {
                 Select Your App
               </h3>
               {myApps.length === 0 ? (
-                <div className="bg-yellow-500/10 p-6 rounded-xl border border-yellow-500/30">
-                  <p className="text-sm text-yellow-600">
+                <div className="bg-amber-500/10 p-6 rounded-xl border border-amber-500/30">
+                  <p className="text-sm text-amber-400">
                     No apps in "My Apps". Go to <strong>My Apps</strong> section to add your apps.
                   </p>
                 </div>
@@ -114,12 +114,12 @@ const CompetitorAnalysis = () => {
                       className={`p-4 rounded-xl border transition-all cursor-pointer ${
                         selectedMyApp === app.id
                           ? "border-primary bg-primary/10 shadow-md"
-                          : "bg-card border-gray-800 hover:border-primary/50"
+                          : "bg-card border-stone-800 hover:border-primary/50"
                       }`}
                     >
                       <div className="flex items-center gap-3">
                         <div
-                          className="size-12 rounded-xl bg-cover bg-center border border-gray-800"
+                          className="size-12 rounded-xl bg-cover bg-center border border-stone-800"
                           style={{ backgroundImage: app.icon ? `url("${app.icon}")` : 'none', backgroundColor: app.icon ? 'transparent' : '#f4eee7' }}
                         ></div>
                         <div className="flex-1 truncate">
@@ -144,7 +144,7 @@ const CompetitorAnalysis = () => {
               </h3>
               {trackedApps.length === 0 ? (
                 <div className="bg-blue-500/10 p-6 rounded-xl border border-blue-500/30">
-                  <p className="text-sm text-blue-500">
+                  <p className="text-sm text-blue-400">
                     No competitors tracked. Go to <strong>Dashboard</strong> and search for keywords to find and track competitor apps.
                   </p>
                 </div>
@@ -157,12 +157,12 @@ const CompetitorAnalysis = () => {
                       className={`p-4 rounded-xl border transition-all cursor-pointer ${
                         selectedCompetitors.includes(app.id)
                           ? "border-blue-500 bg-blue-500/10 shadow-sm"
-                          : "bg-card border-gray-800 hover:border-blue-500/50"
+                          : "bg-card border-stone-800 hover:border-blue-500/50"
                       }`}
                     >
                       <div className="flex items-center gap-3">
                         <div
-                          className="size-12 rounded-xl bg-cover bg-center border border-gray-800"
+                          className="size-12 rounded-xl bg-cover bg-center border border-stone-800"
                           style={{ backgroundImage: `url("${app.icon}")` }}
                         ></div>
                         <div className="flex-1 truncate">
@@ -170,7 +170,7 @@ const CompetitorAnalysis = () => {
                           <p className="text-[10px] text-muted-foreground truncate">{app.developer}</p>
                         </div>
                         {selectedCompetitors.includes(app.id) && (
-                          <span className="material-symbols-outlined text-blue-500">check_circle</span>
+                          <span className="material-symbols-outlined text-blue-400">check_circle</span>
                         )}
                       </div>
                     </div>
@@ -200,30 +200,30 @@ const CompetitorAnalysis = () => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="bg-card p-6 rounded-xl border border-gray-800">
-                    <h3 className="font-bold text-lg mb-4 flex items-center gap-2 text-red-500">
+                  <div className="bg-card p-6 rounded-xl border border-stone-800">
+                    <h3 className="font-bold text-lg mb-4 flex items-center gap-2 text-red-400">
                       <span className="material-symbols-outlined">warning</span>
                       Missing Keywords
                     </h3>
                     <p className="text-xs text-muted-foreground mb-4">Competitors rank for these, but you don't.</p>
                     <div className="flex flex-wrap gap-2">
                       {analysis.analysis.missingKeywords.map((kw: string, i: number) => (
-                        <span key={i} className="px-3 py-1 bg-red-500/10 text-red-500 text-sm font-bold rounded-lg border border-red-500/20">
+                        <span key={i} className="px-3 py-1 bg-red-500/10 text-red-400 text-sm font-bold rounded-lg border border-red-500/20">
                           {kw}
                         </span>
                       ))}
                     </div>
                   </div>
 
-                  <div className="bg-card p-6 rounded-xl border border-gray-800">
-                    <h3 className="font-bold text-lg mb-4 flex items-center gap-2 text-green-500">
+                  <div className="bg-card p-6 rounded-xl border border-stone-800">
+                    <h3 className="font-bold text-lg mb-4 flex items-center gap-2 text-emerald-400">
                       <span className="material-symbols-outlined">lightbulb</span>
                       Keyword Gaps
                     </h3>
                     <p className="text-xs text-muted-foreground mb-4">High-potential opportunities with low competition.</p>
                     <div className="flex flex-wrap gap-2">
                       {analysis.analysis.keywordGaps.map((kw: string, i: number) => (
-                        <span key={i} className="px-3 py-1 bg-green-500/10 text-green-500 text-sm font-bold rounded-lg border border-green-500/20">
+                        <span key={i} className="px-3 py-1 bg-emerald-500/10 text-emerald-400 text-sm font-bold rounded-lg border border-green-500/20">
                           {kw}
                         </span>
                       ))}
@@ -231,7 +231,7 @@ const CompetitorAnalysis = () => {
                   </div>
                 </div>
 
-                <div className="bg-card p-6 rounded-xl border border-gray-800">
+                <div className="bg-card p-6 rounded-xl border border-stone-800">
                   <h3 className="font-bold text-lg mb-4 text-red-400">Keywords to Avoid</h3>
                   <div className="flex flex-wrap gap-2">
                     {analysis.analysis.keywordsToAvoid.map((kw: string, i: number) => (
@@ -300,7 +300,7 @@ const CompetitorAnalysis = () => {
                   </div>
 
                   {/* Competitor Advantages */}
-                  <div className="bg-card p-6 rounded-xl border border-gray-800 mb-6">
+                  <div className="bg-card p-6 rounded-xl border border-stone-800 mb-6">
                     <h3 className="font-bold text-lg mb-4 flex items-center gap-2 text-purple-500">
                       <span className="material-symbols-outlined">trending_up</span>
                       How Competitor is Outperforming
@@ -314,15 +314,15 @@ const CompetitorAnalysis = () => {
                   </div>
 
                   {/* Improvement Steps */}
-                  <div className="bg-card p-6 rounded-xl border border-gray-800">
-                    <h3 className="font-bold text-lg mb-4 flex items-center gap-2 text-green-500">
+                  <div className="bg-card p-6 rounded-xl border border-stone-800">
+                    <h3 className="font-bold text-lg mb-4 flex items-center gap-2 text-emerald-400">
                       <span className="material-symbols-outlined">fact_check</span>
                       Step-by-Step Improvement Plan
                     </h3>
                     {detailedAnalysis.improvementSteps?.map((step: any, i: number) => (
                       <div key={i} className="mb-6 last:mb-0">
                         <div className="flex items-start gap-3 mb-2">
-                          <div className="size-8 rounded-full bg-green-500 text-white flex items-center justify-center font-bold text-sm flex-shrink-0">
+                          <div className="size-8 rounded-full bg-emerald-500 text-white flex items-center justify-center font-bold text-sm flex-shrink-0">
                             {i + 1}
                           </div>
                           <div className="flex-1">
@@ -331,7 +331,7 @@ const CompetitorAnalysis = () => {
                             {step.keywords && step.keywords.length > 0 && (
                               <div className="flex flex-wrap gap-2 mt-2">
                                 {step.keywords.map((kw: string, j: number) => (
-                                  <span key={j} className="px-2 py-1 bg-green-500/10 text-green-500 text-xs font-semibold rounded border border-green-500/20">
+                                  <span key={j} className="px-2 py-1 bg-emerald-500/10 text-emerald-400 text-xs font-semibold rounded border border-green-500/20">
                                     {kw}
                                   </span>
                                 ))}

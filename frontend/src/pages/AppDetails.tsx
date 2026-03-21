@@ -169,9 +169,9 @@ export default function AppDetails() {
     return (
       <div className="p-8">
         <div className="max-w-2xl mx-auto">
-          <Card className="border-destructive/50 bg-destructive/5">
+          <Card className="border-red-500/50 bg-red-500/5">
             <CardContent className="pt-6 text-center">
-              <h2 className="text-xl font-bold mb-2 text-destructive">Failed to Load App</h2>
+              <h2 className="text-xl font-bold mb-2 text-red-400">Failed to Load App</h2>
               <p className="text-muted-foreground mb-6">{error || 'App not found'}</p>
               <Button onClick={() => navigate('/apps')}>
                 <ArrowLeft className="h-4 w-4 mr-2" />
@@ -187,7 +187,7 @@ export default function AppDetails() {
   return (
     <div className="pb-8">
       {/* Header */}
-      <div className="bg-gradient-dark border-b border-gray-800/50 px-6 py-8">
+      <div className="bg-gradient-dark border-b border-stone-800/50 px-6 py-8">
         <div className="max-w-7xl mx-auto">
           <Button variant="ghost" onClick={() => navigate('/apps')} className="mb-4">
             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -196,7 +196,7 @@ export default function AppDetails() {
 
           <div className="flex items-start gap-6">
             <div
-              className="size-28 rounded-2xl bg-cover bg-center border-2 border-border flex-shrink-0 shadow-lg"
+              className="size-28 rounded-2xl bg-cover bg-center border-2 border-stone-700 flex-shrink-0 shadow-lg"
               style={{
                 backgroundImage: app.artworkUrl512 ? `url("${app.artworkUrl512}")` : 'none',
                 backgroundColor: '#f4eee7',
@@ -241,7 +241,7 @@ export default function AppDetails() {
                 </Button>
               )}
               {isMyApp && (
-                <Button variant="outline" onClick={handleRemoveFromMyApps} className="text-destructive hover:bg-destructive/10">
+                <Button variant="outline" onClick={handleRemoveFromMyApps} className="text-red-400 hover:bg-red-500/10 hover:text-red-300">
                   <Trash2 className="h-4 w-4 mr-2" />
                   Remove
                 </Button>

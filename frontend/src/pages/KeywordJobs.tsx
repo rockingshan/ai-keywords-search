@@ -113,16 +113,16 @@ export function KeywordJobs() {
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      pending: { color: 'bg-yellow-500/20 text-yellow-500', icon: Clock, label: 'Pending' },
-      running: { color: 'bg-green-500/20 text-green-500', icon: Loader2, label: 'Running' },
-      paused: { color: 'bg-orange-500/20 text-orange-500', icon: Square, label: 'Paused' },
-      completed: { color: 'bg-blue-500/20 text-blue-500', icon: CheckCircle, label: 'Completed' },
-      failed: { color: 'bg-red-500/20 text-red-500', icon: AlertCircle, label: 'Failed' },
+      pending: { variant: 'warning' as const, icon: Clock, label: 'Pending' },
+      running: { variant: 'success' as const, icon: Loader2, label: 'Running' },
+      paused: { variant: 'warning' as const, icon: Square, label: 'Paused' },
+      completed: { variant: 'default' as const, icon: CheckCircle, label: 'Completed' },
+      failed: { variant: 'danger' as const, icon: AlertCircle, label: 'Failed' },
     };
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
     const Icon = config.icon;
     return (
-      <Badge className={config.color}>
+      <Badge variant={config.variant}>
         <Icon className="w-3 h-3 mr-1" />
         {config.label}
       </Badge>
@@ -170,7 +170,7 @@ export function KeywordJobs() {
               <div>
                 <label className="block text-sm font-medium mb-2">Strategy</label>
                 <select
-                  className="w-full px-3 py-2 bg-background border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full px-3 py-2 bg-card border border-stone-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-foreground"
                   value={formData.strategy}
                   onChange={(e) => setFormData({ ...formData, strategy: e.target.value as any })}
                 >
@@ -231,7 +231,7 @@ export function KeywordJobs() {
               <div>
                 <label className="block text-sm font-medium mb-2">Country</label>
                 <select
-                  className="w-full px-3 py-2 bg-background border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full px-3 py-2 bg-card border border-stone-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-foreground"
                   value={formData.country}
                   onChange={(e) => setFormData({ ...formData, country: e.target.value })}
                 >
@@ -248,7 +248,7 @@ export function KeywordJobs() {
             <div>
               <label className="block text-sm font-medium mb-2">Notes (optional)</label>
               <textarea
-                className="w-full px-3 py-2 bg-background border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary min-h-[80px]"
+                className="w-full px-3 py-2 bg-card border border-stone-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary min-h-[80px] text-foreground placeholder:text-stone-500"
                 value={formData.notes}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                 placeholder="Add any notes about this job..."
@@ -314,7 +314,7 @@ export function KeywordJobs() {
                           <span>Progress</span>
                           <span>{getProgress(job)}%</span>
                         </div>
-                        <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
+                        <div className="h-2 bg-secondary rounded-full overflow-hidden">
                           <div
                             className="h-full bg-gradient-warm transition-all duration-500"
                             style={{ width: `${getProgress(job)}%` }}
@@ -496,7 +496,7 @@ function JobDetailModal({ jobId, onClose, onJobUpdated }: JobDetailModalProps) {
                           setSelectedResults(new Set());
                         }
                       }}
-                      className="w-4 h-4 rounded border-gray-600"
+                      className="w-4 h-4 rounded border-stone-600 bg-card"
                     />
                     <span className="text-sm">Select All ({selectedResults.size} selected)</span>
                   </label>
@@ -528,8 +528,8 @@ function JobDetailModal({ jobId, onClose, onJobUpdated }: JobDetailModalProps) {
                     {job.results.map((result: any) => (
                       <tr
                         key={result.id}
-                        className={`border-b border-gray-800 hover:bg-accent/30 transition-colors ${
-                          result.isTracked ? 'bg-green-500/10' : ''
+                        className={`border-b border-stone-800 hover:bg-secondary/30 transition-colors ${
+                          result.isTracked ? 'bg-emerald-500/10' : ''
                         }`}
                       >
                         <td className="p-3">
@@ -538,20 +538,20 @@ function JobDetailModal({ jobId, onClose, onJobUpdated }: JobDetailModalProps) {
                             checked={selectedResults.has(result.id)}
                             onChange={() => toggleResult(result.id)}
                             disabled={result.status !== 'success'}
-                            className="w-4 h-4 rounded border-gray-600"
+                            className="w-4 h-4 rounded border-stone-600 bg-card"
                           />
                         </td>
                         <td className="p-3">
                           <span className="font-medium">{result.keyword}</span>
                           {result.isTracked && (
-                            <Badge className="ml-2 bg-green-500/20 text-green-500 text-xs">Tracked</Badge>
+                            <Badge variant="success" className="ml-2 text-xs">Tracked</Badge>
                           )}
                         </td>
                         <td className="p-3">
                           <div className="flex items-center gap-2">
-                            <div className="w-16 h-2 bg-gray-800 rounded-full overflow-hidden">
+                            <div className="w-16 h-2 bg-secondary rounded-full overflow-hidden">
                               <div
-                                className="h-full bg-blue-500"
+                                className="h-full bg-gradient-warm"
                                 style={{ width: `${result.popularity || 0}%` }}
                               />
                             </div>
@@ -560,9 +560,9 @@ function JobDetailModal({ jobId, onClose, onJobUpdated }: JobDetailModalProps) {
                         </td>
                         <td className="p-3">
                           <div className="flex items-center gap-2">
-                            <div className="w-16 h-2 bg-gray-800 rounded-full overflow-hidden">
+                            <div className="w-16 h-2 bg-secondary rounded-full overflow-hidden">
                               <div
-                                className="h-full bg-red-500"
+                                className="h-full bg-gradient-to-r from-emerald-500 via-amber-500 to-red-500"
                                 style={{ width: `${result.difficulty || 0}%` }}
                               />
                             </div>
@@ -571,8 +571,8 @@ function JobDetailModal({ jobId, onClose, onJobUpdated }: JobDetailModalProps) {
                         </td>
                         <td className="p-3">
                           <span className={`font-bold ${
-                            (result.opportunityScore || 0) > 5 ? 'text-green-500' :
-                            (result.opportunityScore || 0) > 2 ? 'text-yellow-500' : 'text-gray-500'
+                            (result.opportunityScore || 0) > 5 ? 'text-emerald-400' :
+                            (result.opportunityScore || 0) > 2 ? 'text-amber-400' : 'text-stone-500'
                           }`}>
                             {result.opportunityScore?.toFixed(1) || '-'}
                           </span>
@@ -580,11 +580,11 @@ function JobDetailModal({ jobId, onClose, onJobUpdated }: JobDetailModalProps) {
                         <td className="p-3 text-sm">{result.competitorCount || '-'}</td>
                         <td className="p-3">
                           {result.status === 'success' ? (
-                            <Badge className="bg-green-500/20 text-green-500">Success</Badge>
+                            <Badge variant="success">Success</Badge>
                           ) : result.status === 'error' ? (
-                            <Badge className="bg-red-500/20 text-red-500">Error</Badge>
+                            <Badge variant="danger">Error</Badge>
                           ) : (
-                            <Badge className="bg-gray-500/20 text-gray-500">Skipped</Badge>
+                            <Badge variant="secondary">Skipped</Badge>
                           )}
                         </td>
                       </tr>

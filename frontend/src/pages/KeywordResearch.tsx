@@ -1,14 +1,26 @@
 import { useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useSearchParams, useNavigate } from 'react-router-dom'
-import { Search, Star, StarOff } from 'lucide-react'
+import { Search, Star, StarOff, TrendingUp, Target, Trophy } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/Card'
 import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
 import { Badge } from '../components/ui/Badge'
 import { keywordApi, trackedApi } from '../lib/api'
-import { formatNumber, getDifficultyColor, getPopularityColor } from '../lib/utils'
+import { formatNumber } from '../lib/utils'
 import { useStore } from '../store/useStore'
+
+const getPopularityColor = (popularity: number) => {
+  if (popularity < 30) return 'text-red-400'
+  if (popularity < 60) return 'text-amber-400'
+  return 'text-emerald-400'
+}
+
+const getDifficultyColor = (difficulty: number) => {
+  if (difficulty < 30) return 'text-emerald-400'
+  if (difficulty < 60) return 'text-amber-400'
+  return 'text-red-400'
+}
 
 export function KeywordResearch() {
   const navigate = useNavigate()
@@ -116,13 +128,13 @@ export function KeywordResearch() {
               <select
                 value={country}
                 onChange={(e) => setCountry(e.target.value)}
-                className="h-12 px-4 rounded-xl bg-card border border-input"
+                className="h-12 px-4 rounded-xl bg-card border border-stone-800 text-foreground"
               >
-                <option value="us">🇺🇸 United States</option>
-                <option value="gb">🇬🇧 United Kingdom</option>
-                <option value="de">🇩🇪 Germany</option>
-                <option value="fr">🇫🇷 France</option>
-                <option value="jp">🇯🇵 Japan</option>
+                <option value="us">United States</option>
+                <option value="gb">United Kingdom</option>
+                <option value="de">Germany</option>
+                <option value="fr">France</option>
+                <option value="jp">Japan</option>
               </select>
               <Button onClick={handleAnalyze} disabled={!keyword.trim() || isLoading} size="lg" className="h-12">
                 <Search className="h-5 w-5 mr-2" />
@@ -164,7 +176,10 @@ export function KeywordResearch() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <Card className="card-hover">
                 <CardHeader>
-                  <CardDescription>Popularity Score</CardDescription>
+                  <CardDescription className="flex items-center gap-2">
+                    <TrendingUp className="h-4 w-4 text-primary" />
+                    Popularity Score
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
@@ -187,7 +202,10 @@ export function KeywordResearch() {
 
               <Card className="card-hover">
                 <CardHeader>
-                  <CardDescription>Difficulty Score</CardDescription>
+                  <CardDescription className="flex items-center gap-2">
+                    <Target className="h-4 w-4 text-primary" />
+                    Difficulty Score
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
@@ -197,7 +215,7 @@ export function KeywordResearch() {
                     </div>
                     <div className="w-full bg-secondary rounded-full h-3 overflow-hidden">
                       <div
-                        className="h-full bg-gradient-to-r from-green-500 via-yellow-500 to-red-500 transition-all duration-500"
+                        className="h-full bg-gradient-to-r from-emerald-500 via-amber-500 to-red-500 transition-all duration-500"
                         style={{ width: `${analysis.difficulty}%` }}
                       />
                     </div>
@@ -210,7 +228,10 @@ export function KeywordResearch() {
 
               <Card className="card-hover">
                 <CardHeader>
-                  <CardDescription>Competition</CardDescription>
+                  <CardDescription className="flex items-center gap-2">
+                    <Trophy className="h-4 w-4 text-primary" />
+                    Competition
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
@@ -240,7 +261,7 @@ export function KeywordResearch() {
                     <div
                       key={app.id}
                       onClick={() => navigate(`/apps/${app.id}`)}
-                      className="flex items-center justify-between p-4 rounded-xl hover:bg-accent transition-all hover-lift cursor-pointer"
+                      className="flex items-center justify-between p-4 rounded-xl hover:bg-secondary transition-all hover-lift cursor-pointer"
                     >
                       <div className="flex items-center space-x-4">
                         <div className="flex items-center justify-center h-10 w-10 rounded-xl bg-primary/10 text-primary font-bold">
@@ -257,7 +278,7 @@ export function KeywordResearch() {
                       <div className="flex items-center space-x-4">
                         <div className="text-right">
                           <div className="flex items-center space-x-1">
-                            <span className="text-yellow-500">★</span>
+                            <span className="text-amber-400">★</span>
                             <span className="font-semibold">{app.rating?.toFixed(1) || 'N/A'}</span>
                           </div>
                           <p className="text-xs text-muted-foreground">
@@ -279,7 +300,7 @@ export function KeywordResearch() {
                           size="sm"
                           className="gap-1"
                         >
-                          <span className="material-symbols-outlined text-sm">add_circle</span>
+                          <span className="text-primary">+</span>
                           Track
                         </Button>
                       </div>
@@ -305,7 +326,7 @@ export function KeywordResearch() {
                           setKeyword(term)
                           setActiveKeyword(term)
                         }}
-                        className="px-4 py-2 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 transition-all hover-lift"
+                        className="px-4 py-2 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 transition-all hover-lift keyword-chip"
                       >
                         {term}
                       </button>
@@ -319,9 +340,14 @@ export function KeywordResearch() {
 
         {/* Empty State */}
         {!analysis && !isLoading && (
-          <Card className="text-center py-16 animate-fade-in">
+          <Card className="text-center py-16 animate-scale-in">
             <CardContent>
-              <Search className="h-20 w-20 mx-auto mb-4 text-muted-foreground opacity-50" />
+              <div className="relative inline-block mb-4">
+                <Search className="h-20 w-20 text-muted-foreground opacity-30" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <TrendingUp className="h-10 w-10 text-primary opacity-50" />
+                </div>
+              </div>
               <h3 className="text-2xl font-bold mb-2">Start Analyzing Keywords</h3>
               <p className="text-muted-foreground mb-6">
                 Enter a keyword above to get popularity, difficulty, and competition insights
@@ -332,9 +358,9 @@ export function KeywordResearch() {
 
         {/* Error State */}
         {error && (
-          <Card className="border-destructive animate-fade-in">
+          <Card className="border-red-500/30 bg-red-500/5 animate-scale-in">
             <CardContent className="pt-6">
-              <p className="text-destructive">Error: {error.message}</p>
+              <p className="text-red-400">Error: {error.message}</p>
             </CardContent>
           </Card>
         )}

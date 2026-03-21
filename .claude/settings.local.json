@@ -21,7 +21,11 @@
       "Bash(start chrome http://localhost:5174)",
       "Bash(start chrome http://localhost:5175)",
       "Bash(powershell -Command \"Add-Type -AssemblyName System.Windows.Forms; Start-Sleep -Seconds 2; $screen = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds; $bitmap = New-Object System.Drawing.Bitmap\\($screen.Width, $screen.Height\\); $graphics = [System.Drawing.Graphics]::FromImage\\($bitmap\\); $graphics.CopyFromScreen\\($screen.Location, [System.Drawing.Point]::Empty, $screen.Size\\); $bitmap.Save\\(''$env:TEMP\\\\screenshot.png''\\); $bitmap.Dispose\\(\\); $graphics.Dispose\\(\\); Write-Host ''Screenshot saved''\")",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(docker-compose up:*)",
+      "Bash(docker compose:*)",
+      "mcp__plugin_playwright_playwright__browser_navigate",
+      "mcp__plugin_playwright_playwright__browser_install"
     ]
   }
 }

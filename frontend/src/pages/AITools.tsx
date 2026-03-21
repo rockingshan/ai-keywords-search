@@ -112,8 +112,8 @@ export function AITools() {
   return (
     <div className="relative">
       {/* Hero Section */}
-      <div className="relative overflow-hidden bg-gradient-dark border-b border-gray-800/50">
-        <div className="absolute inset-0 opacity-20">
+      <div className="relative overflow-hidden bg-gradient-dark border-b border-stone-800/50">
+        <div className="absolute inset-0 opacity-30">
           <div className="absolute top-20 right-10 h-64 w-64 rounded-full bg-yellow-500/30 blur-3xl animate-pulse"></div>
           <div className="absolute bottom-20 left-10 h-80 w-80 rounded-full bg-orange-500/20 blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
           <div className="absolute top-40 left-1/4 h-48 w-48 rounded-full bg-amber-500/20 blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
@@ -155,7 +155,7 @@ export function AITools() {
                 <select
                   value={categoryInput}
                   onChange={(e) => setCategoryInput(e.target.value)}
-                  className="h-12 px-4 rounded-xl bg-card border border-input min-w-[200px] text-foreground"
+                  className="h-12 px-4 rounded-xl bg-card border border-stone-800 min-w-[200px] text-foreground"
                 >
                   <option value="Productivity">Productivity</option>
                   <option value="Health & Fitness">Health & Fitness</option>
@@ -208,7 +208,7 @@ export function AITools() {
               )}
 
               {keywordSuggestions.isError && (
-                <div className="p-4 rounded-xl bg-destructive/10 text-destructive">
+                <div className="p-4 rounded-xl bg-red-500/10 text-red-400">
                   Error: {(keywordSuggestions.error as Error).message}
                 </div>
               )}
@@ -280,7 +280,7 @@ export function AITools() {
               )}
 
               {competitorAnalysis.isError && (
-                <div className="p-4 rounded-xl bg-destructive/10 text-destructive">
+                <div className="p-4 rounded-xl bg-red-500/10 text-red-400">
                   Error: {(competitorAnalysis.error as Error).message}
                 </div>
               )}
@@ -361,7 +361,7 @@ export function AITools() {
               )}
 
               {metadataOptimization.isError && (
-                <div className="p-4 rounded-xl bg-destructive/10 text-destructive">
+                <div className="p-4 rounded-xl bg-red-500/10 text-red-400">
                   Error: {(metadataOptimization.error as Error).message}
                 </div>
               )}
@@ -436,7 +436,7 @@ export function AITools() {
               )}
 
               {intentAnalysis.isError && (
-                <div className="p-4 rounded-xl bg-destructive/10 text-destructive">
+                <div className="p-4 rounded-xl bg-red-500/10 text-red-400">
                   Error: {(intentAnalysis.error as Error).message}
                 </div>
               )}

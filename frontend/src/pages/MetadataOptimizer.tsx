@@ -70,7 +70,7 @@ const MetadataOptimizer = () => {
                         <select
                             value={selectedAppId || ""}
                             onChange={(e) => setSelectedAppId(e.target.value)}
-                            className="bg-card border border-gray-800 rounded-xl px-4 py-2 font-bold focus:ring-2 focus:ring-primary outline-none text-foreground"
+                            className="bg-card border border-stone-800 rounded-xl px-4 py-2 font-bold focus:ring-2 focus:ring-primary outline-none text-foreground"
                         >
                             {myApps.map(app => (
                                 <option key={app.id} value={app.id}>{app.name}</option>
@@ -93,7 +93,7 @@ const MetadataOptimizer = () => {
             {appDetail ? (
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
                     {/* Current */}
-                    <div className="bg-card p-6 rounded-2xl border border-gray-800 shadow-md flex flex-col gap-6">
+                    <div className="bg-card p-6 rounded-2xl border border-stone-800 shadow-md flex flex-col gap-6">
                         <h3 className="font-bold text-lg flex items-center gap-2 text-foreground">
                             <span className="material-symbols-outlined text-muted-foreground">
                                 edit_note
@@ -107,7 +107,7 @@ const MetadataOptimizer = () => {
                                     <span className="text-xs text-muted-foreground">{appDetail.name.length}/30</span>
                                 </div>
                                 <input
-                                    className="w-full rounded-lg border border-gray-800 bg-background p-2 text-foreground"
+                                    className="w-full rounded-lg border border-stone-800 bg-card p-2 text-foreground"
                                     value={appDetail.name}
                                     readOnly
                                 />
@@ -117,7 +117,7 @@ const MetadataOptimizer = () => {
                                     <label className="text-sm font-bold text-foreground">Category</label>
                                 </div>
                                 <input
-                                    className="w-full rounded-lg border border-gray-800 bg-background p-2 text-foreground"
+                                    className="w-full rounded-lg border border-stone-800 bg-card p-2 text-foreground"
                                     value={appDetail.category}
                                     readOnly
                                 />
@@ -125,7 +125,7 @@ const MetadataOptimizer = () => {
                             <div className="space-y-2">
                                 <label className="text-sm font-bold text-foreground">Description Snippet</label>
                                 <textarea
-                                    className="w-full rounded-lg border border-gray-800 bg-background text-xs p-2 text-foreground"
+                                    className="w-full rounded-lg border border-stone-800 bg-card text-xs p-2 text-foreground"
                                     rows={6}
                                     readOnly
                                     value={appDetail.description?.slice(0, 500) + "..."}
@@ -134,7 +134,7 @@ const MetadataOptimizer = () => {
                         </div>
                     </div>
 
-                    <div className="bg-card p-6 rounded-2xl border border-gray-800 shadow-md flex flex-col gap-6">
+                    <div className="bg-card p-6 rounded-2xl border border-stone-800 shadow-md flex flex-col gap-6">
                         <h3 className="font-bold text-lg flex items-center gap-2 text-foreground">
                             <span className="material-symbols-outlined text-muted-foreground">
                                 key
@@ -144,7 +144,7 @@ const MetadataOptimizer = () => {
                         <div className="space-y-4">
                             <p className="text-xs text-muted-foreground">Enter keywords you want to rank for (comma separated)</p>
                             <input
-                                className="w-full rounded-lg border border-gray-800 bg-background p-3 font-medium outline-none focus:ring-2 focus:ring-primary/50 text-foreground"
+                                className="w-full rounded-lg border border-stone-800 bg-card p-3 font-medium outline-none focus:ring-2 focus:ring-primary/50 text-foreground"
                                 placeholder="e.g. fitness, workout, gym"
                                 value={targetKeywords.join(", ")}
                                 onChange={(e) => setTargetKeywords(e.target.value.split(",").map(k => k.trim()))}
@@ -162,7 +162,7 @@ const MetadataOptimizer = () => {
                     {/* AI Suggestions */}
                     <div className={`bg-primary/5 p-6 rounded-2xl border border-primary/20 shadow-md flex flex-col gap-6 relative overflow-hidden transition-all ${!optimizedData ? 'opacity-50 grayscale' : ''}`}>
                         {!optimizedData && (
-                            <div className="absolute inset-0 flex items-center justify-center z-20 bg-background/10 backdrop-blur-[2px]">
+                            <div className="absolute inset-0 flex items-center justify-center z-20 bg-card/10 backdrop-blur-[2px]">
                                 <p className="bg-card px-4 py-2 rounded-lg font-bold shadow-lg border border-primary/20 text-foreground">Click 'Run AI Analysis' to see optimizations</p>
                             </div>
                         )}
@@ -190,7 +190,7 @@ const MetadataOptimizer = () => {
                                     </div>
                                     <div className="p-3 bg-card border border-primary/30 rounded-lg text-sm font-bold flex justify-between text-foreground">
                                         <span>{optimizedData.title}</span>
-                                        <span className={`text-xs px-2 rounded-full ${optimizedData.titleCharCount > 30 ? 'bg-red-500/10 text-red-500' : 'bg-primary/10 text-primary'}`}>
+                                        <span className={`text-xs px-2 rounded-full ${optimizedData.titleCharCount > 30 ? 'bg-red-500/10 text-red-400' : 'bg-primary/10 text-primary'}`}>
                                             {optimizedData.titleCharCount}/30
                                         </span>
                                     </div>
@@ -209,7 +209,7 @@ const MetadataOptimizer = () => {
                                     </div>
                                     <div className="p-3 bg-card border border-primary/30 rounded-lg text-sm font-medium flex justify-between text-foreground">
                                         <span>{optimizedData.subtitle}</span>
-                                        <span className={`text-xs px-2 rounded-full ${optimizedData.subtitleCharCount > 30 ? 'bg-red-500/10 text-red-500' : 'bg-primary/10 text-primary'}`}>
+                                        <span className={`text-xs px-2 rounded-full ${optimizedData.subtitleCharCount > 30 ? 'bg-red-500/10 text-red-400' : 'bg-primary/10 text-primary'}`}>
                                             {optimizedData.subtitleCharCount}/30
                                         </span>
                                     </div>
@@ -219,7 +219,7 @@ const MetadataOptimizer = () => {
                                         <label className="text-sm font-bold text-primary">
                                             Strategic Keywords (100 Chars)
                                         </label>
-                                        <span className={`text-xs font-bold px-2 rounded-full ${optimizedData.keywordsCharCount > 100 ? 'bg-red-500/10 text-red-500' : 'bg-primary/10 text-primary'}`}>
+                                        <span className={`text-xs font-bold px-2 rounded-full ${optimizedData.keywordsCharCount > 100 ? 'bg-red-500/10 text-red-400' : 'bg-primary/10 text-primary'}`}>
                                             {optimizedData.keywordsCharCount}/100
                                         </span>
                                     </div>
@@ -238,7 +238,7 @@ const MetadataOptimizer = () => {
                     </div>
                 </div>
             ) : (
-                <div className="bg-card p-12 rounded-xl border border-gray-800 text-center">
+                <div className="bg-card p-12 rounded-xl border border-stone-800 text-center">
                     <span className="material-symbols-outlined text-6xl text-muted-foreground mb-4">app_registration</span>
                     <h3 className="text-xl font-bold mb-2 text-foreground">No App Selected</h3>
                     <p className="text-muted-foreground max-w-md mx-auto">
